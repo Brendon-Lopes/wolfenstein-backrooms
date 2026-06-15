@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"image/color"
 	"log"
+	"math"
 
 	"github.com/Brendon-Lopes/wolfenstein-backrooms/internal/entity"
 	"github.com/Brendon-Lopes/wolfenstein-backrooms/internal/world"
@@ -52,7 +53,10 @@ func main() {
 		1, 1, 1, 1, 1, 1, 1, 1,
 	}
 
-	p := &entity.Player{X: 200, Y: 200}
+	pdx := math.Cos(0) * 5
+	pdy := math.Sin(0) * 5
+
+	p := &entity.Player{X: 200, Y: 200, DeltaX: pdx, DeltaY: pdy}
 	m := &world.Map{Width: 8, Height: 8, TileSize: 64, Grid: mapGrid}
 	g := &Game{p, m}
 

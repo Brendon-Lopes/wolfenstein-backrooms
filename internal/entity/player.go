@@ -14,12 +14,28 @@ type Player struct {
 
 // TODO: mover pra UI
 func (p *Player) DrawPlayer(screen *ebiten.Image) {
+	playerSize := 8
+
 	vector.FillRect(
 		screen,
 		float32(p.X),
 		float32(p.Y),
-		8,
-		8,
+		float32(playerSize),
+		float32(playerSize),
+		color.RGBA{255, 255, 0, 255},
+		false,
+	)
+
+	centerX := p.X + (float64(playerSize) / 2)
+	centerY := p.Y + (float64(playerSize) / 2)
+
+	vector.StrokeLine(
+		screen,
+		float32(centerX),
+		float32(centerY),
+		float32(centerX+p.DeltaX*5),
+		float32(centerY+p.DeltaY*5),
+		2,
 		color.RGBA{255, 255, 0, 255},
 		false,
 	)
