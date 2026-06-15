@@ -2,17 +2,18 @@ package entity
 
 import (
 	"image/color"
+	"math"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/vector"
 )
 
 type Player struct {
-	X, Y float64
+	X, Y, DeltaX, DeltaY, Angle float64
 }
 
 // TODO: mover pra UI
-func DrawPlayer(screen *ebiten.Image, p *Player) {
+func (p *Player) DrawPlayer(screen *ebiten.Image) {
 	vector.FillRect(
 		screen,
 		float32(p.X),
@@ -27,15 +28,31 @@ func DrawPlayer(screen *ebiten.Image, p *Player) {
 // TODO: mover pra input
 func ReadInput(p *Player) {
 	if ebiten.IsKeyPressed(ebiten.KeyA) {
-		p.X -= 5
+		p.Angle -= 0.1
+
+		if p.Angle < 0 {
+			p.Angle += 2 * math.Pi
+		}
+
+		p.DeltaX = math.Cos(p.Angle) * 5
+		p.DeltaY = math.Sin(p.Angle) * 5
 	}
 	if ebiten.IsKeyPressed(ebiten.KeyD) {
-		p.X += 5
+		p.Angle += 0.1
+
+		if p.Angle > 2*math.Pi {
+			p.Angle -= 2 * math.Pi
+		}
+
+		p.DeltaX = math.Cos(p.Angle) * 5
+		p.DeltaY = math.Sin(p.Angle) * 5
 	}
 	if ebiten.IsKeyPressed(ebiten.KeyW) {
-		p.Y -= 5
+		p.X += p.DeltaX
+		p.Y += p.DeltaY
 	}
 	if ebiten.IsKeyPressed(ebiten.KeyS) {
-		p.Y += 5
+		p.X -= p.DeltaX
+		p.Y -= p.DeltaY
 	}
 }

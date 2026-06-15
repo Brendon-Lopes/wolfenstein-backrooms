@@ -7,9 +7,6 @@ import (
 	"github.com/hajimehoshi/ebiten/v2/vector"
 )
 
-type Tile struct {
-}
-
 type Map struct {
 	Width    int
 	Height   int

@@ -24,7 +24,7 @@ type Game struct {
 func (g *Game) Draw(screen *ebiten.Image) {
 	screen.Fill(color.RGBA{50, 50, 50, 255})
 	g.worldMap.DrawMap(screen)
-	entity.DrawPlayer(screen, g.player)
+	g.player.DrawPlayer(screen)
 }
 
 func (g *Game) Update() error {
