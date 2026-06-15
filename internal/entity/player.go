@@ -28,14 +28,15 @@ func (p *Player) DrawPlayer(screen *ebiten.Image) {
 
 	centerX := p.X + (float64(playerSize) / 2)
 	centerY := p.Y + (float64(playerSize) / 2)
+	lineLength := 25.0
 
 	vector.StrokeLine(
 		screen,
 		float32(centerX),
 		float32(centerY),
-		float32(centerX+p.DeltaX*5),
-		float32(centerY+p.DeltaY*5),
-		2,
+		float32(centerX+math.Cos(p.Angle)*lineLength),
+		float32(centerY+math.Sin(p.Angle)*lineLength),
+		1,
 		color.RGBA{255, 255, 0, 255},
 		false,
 	)
@@ -43,25 +44,28 @@ func (p *Player) DrawPlayer(screen *ebiten.Image) {
 
 // TODO: mover pra input
 func ReadInput(p *Player) {
+	angleChangeStep := 0.1
+	var velocityMultiplier float64 = 2
+
 	if ebiten.IsKeyPressed(ebiten.KeyA) {
-		p.Angle -= 0.1
+		p.Angle -= angleChangeStep
 
 		if p.Angle < 0 {
 			p.Angle += 2 * math.Pi
 		}
 
-		p.DeltaX = math.Cos(p.Angle) * 5
-		p.DeltaY = math.Sin(p.Angle) * 5
+		p.DeltaX = math.Cos(p.Angle) * velocityMultiplier
+		p.DeltaY = math.Sin(p.Angle) * velocityMultiplier
 	}
 	if ebiten.IsKeyPressed(ebiten.KeyD) {
-		p.Angle += 0.1
+		p.Angle += angleChangeStep
 
 		if p.Angle > 2*math.Pi {
 			p.Angle -= 2 * math.Pi
 		}
 
-		p.DeltaX = math.Cos(p.Angle) * 5
-		p.DeltaY = math.Sin(p.Angle) * 5
+		p.DeltaX = math.Cos(p.Angle) * velocityMultiplier
+		p.DeltaY = math.Sin(p.Angle) * velocityMultiplier
 	}
 	if ebiten.IsKeyPressed(ebiten.KeyW) {
 		p.X += p.DeltaX
