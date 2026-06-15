@@ -42,6 +42,18 @@ func (m *Map) DrawMap(screen *ebiten.Image) {
 				c,
 				false,
 			)
+
+			vector.StrokeRect(
+				screen,
+				float32(xo),
+				float32(yo),
+				float32(m.TileSize),
+				float32(m.TileSize),
+				2,
+				color.RGBA{50, 50, 50, 255},
+				false,
+			)
+
 		}
 	}
 }

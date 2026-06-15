@@ -11,8 +11,8 @@ import (
 )
 
 const (
-	windowWidth  = 1280
-	windowHeight = 720
+	windowWidth  = 1024
+	windowHeight = 512
 	resDivision  = 1
 )
 
