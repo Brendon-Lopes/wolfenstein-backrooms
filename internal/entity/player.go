@@ -13,19 +13,13 @@ type Player struct {
 const PlayerSpeed float64 = 2
 const AngleStep = 0.1
 
-func Move(p *Player, forward bool) {
-	if forward {
-		p.X += p.DeltaX
-		p.Y += p.DeltaY
-		return
-	}
-
-	p.X -= p.DeltaX
-	p.Y -= p.DeltaY
+func Move(p *Player, dir float64) {
+	p.X += p.DeltaX * dir
+	p.Y += p.DeltaY * dir
 }
 
 func Rotate(p *Player, dir float64) {
-	p.Angle += dir * AngleStep
+	p.Angle += AngleStep * dir
 
 	if p.Angle < 0 {
 		p.Angle += 2 * math.Pi
@@ -38,16 +32,19 @@ func Rotate(p *Player, dir float64) {
 }
 
 func UpdatePlayer(p *Player, cmd input.Command) {
+	const positive float64 = 1
+	const negative float64 = -1
+
 	if cmd.TurnLeft {
-		Rotate(p, -1)
+		Rotate(p, negative)
 	}
 	if cmd.TurnRight {
-		Rotate(p, 1)
+		Rotate(p, positive)
 	}
 	if cmd.MoveForward {
-		Move(p, true)
+		Move(p, positive)
 	}
 	if cmd.MoveBackward {
-		Move(p, false)
+		Move(p, negative)
 	}
 }
