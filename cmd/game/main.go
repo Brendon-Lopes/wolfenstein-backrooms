@@ -5,7 +5,9 @@ import (
 	"log"
 	"math"
 
+	"github.com/Brendon-Lopes/wolfenstein-backrooms/internal/engine"
 	"github.com/Brendon-Lopes/wolfenstein-backrooms/internal/entity"
+	"github.com/Brendon-Lopes/wolfenstein-backrooms/internal/input"
 	"github.com/Brendon-Lopes/wolfenstein-backrooms/internal/world"
 	"github.com/hajimehoshi/ebiten/v2"
 )
@@ -24,11 +26,12 @@ type Game struct {
 func (g *Game) Draw(screen *ebiten.Image) {
 	screen.Fill(color.RGBA{50, 50, 50, 255})
 	g.worldMap.DrawMap(screen)
-	g.player.DrawPlayer(screen)
+	engine.DrawPlayer(screen, g.player)
 }
 
 func (g *Game) Update() error {
-	entity.ReadInput(g.player)
+	cmd := input.ReadInput()
+	entity.UpdatePlayer(g.player, cmd)
 	return nil
 }
 
