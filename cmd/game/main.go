@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"image/color"
 	"log"
 	"math"
@@ -38,7 +37,6 @@ func (g *Game) Layout(outsideWidth, outsideHeight int) (screenWidth, screenHeigh
 }
 
 func main() {
-	fmt.Println("Hello")
 	ebiten.SetWindowSize(windowWidth, windowHeight)
 	ebiten.SetWindowTitle("Wolfenrooms")
 
@@ -53,8 +51,8 @@ func main() {
 		1, 1, 1, 1, 1, 1, 1, 1,
 	}
 
-	pdx := math.Cos(0) * 5
-	pdy := math.Sin(0) * 5
+	pdx := math.Cos(0) * entity.PlayerSpeed
+	pdy := math.Sin(0) * entity.PlayerSpeed
 
 	p := &entity.Player{X: 200, Y: 200, DeltaX: pdx, DeltaY: pdy}
 	m := &world.Map{Width: 8, Height: 8, TileSize: 64, Grid: mapGrid}

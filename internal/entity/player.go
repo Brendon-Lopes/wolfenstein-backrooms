@@ -12,6 +12,8 @@ type Player struct {
 	X, Y, DeltaX, DeltaY, Angle float64
 }
 
+var PlayerSpeed float64 = 2
+
 // TODO: mover pra UI
 func (p *Player) DrawPlayer(screen *ebiten.Image) {
 	playerSize := 8
@@ -45,7 +47,6 @@ func (p *Player) DrawPlayer(screen *ebiten.Image) {
 // TODO: mover pra input
 func ReadInput(p *Player) {
 	angleChangeStep := 0.1
-	var velocityMultiplier float64 = 2
 
 	if ebiten.IsKeyPressed(ebiten.KeyA) {
 		p.Angle -= angleChangeStep
@@ -54,8 +55,8 @@ func ReadInput(p *Player) {
 			p.Angle += 2 * math.Pi
 		}
 
-		p.DeltaX = math.Cos(p.Angle) * velocityMultiplier
-		p.DeltaY = math.Sin(p.Angle) * velocityMultiplier
+		p.DeltaX = math.Cos(p.Angle) * PlayerSpeed
+		p.DeltaY = math.Sin(p.Angle) * PlayerSpeed
 	}
 	if ebiten.IsKeyPressed(ebiten.KeyD) {
 		p.Angle += angleChangeStep
@@ -64,8 +65,8 @@ func ReadInput(p *Player) {
 			p.Angle -= 2 * math.Pi
 		}
 
-		p.DeltaX = math.Cos(p.Angle) * velocityMultiplier
-		p.DeltaY = math.Sin(p.Angle) * velocityMultiplier
+		p.DeltaX = math.Cos(p.Angle) * PlayerSpeed
+		p.DeltaY = math.Sin(p.Angle) * PlayerSpeed
 	}
 	if ebiten.IsKeyPressed(ebiten.KeyW) {
 		p.X += p.DeltaX
