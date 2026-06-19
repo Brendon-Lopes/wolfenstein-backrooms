@@ -25,6 +25,7 @@ func DrawPlayer(screen *ebiten.Image, p *entity.Player) {
 		float32(p.Y),
 		float32(playerSize),
 		float32(playerSize),
+		// TODO: not alocate color every render
 		color.RGBA{255, 255, 0, 255},
 		false,
 	)
@@ -37,6 +38,7 @@ func DrawPlayer(screen *ebiten.Image, p *entity.Player) {
 		float32(centerX+math.Cos(p.Angle)*lineLength),
 		float32(centerY+math.Sin(p.Angle)*lineLength),
 		1,
+		// TODO: not alocate color every render
 		color.RGBA{255, 255, 0, 255},
 		false,
 	)

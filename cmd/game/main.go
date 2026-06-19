@@ -18,13 +18,23 @@ const (
 	resDivision  = 1
 )
 
+// TODO: move palette to own package and initialize once
+type Palette struct {
+	Gray color.RGBA
+}
+
+// TODO: move palette to own package and initialize once
+var palette = Palette{
+	Gray: color.RGBA{50, 50, 50, 255},
+}
+
 type Game struct {
 	player   *entity.Player
 	worldMap *world.Map
 }
 
 func (g *Game) Draw(screen *ebiten.Image) {
-	screen.Fill(color.RGBA{50, 50, 50, 255})
+	screen.Fill(palette.Gray)
 	engine.DrawMap(screen, g.worldMap)
 	engine.DrawPlayer(screen, g.player)
 }
@@ -43,6 +53,7 @@ func main() {
 	ebiten.SetWindowSize(windowWidth, windowHeight)
 	ebiten.SetWindowTitle("Wolfenrooms")
 
+	// TODO: initialize map somewhere else
 	mapGrid := []byte{
 		1, 1, 1, 1, 1, 1, 1, 1,
 		1, 0, 1, 0, 0, 0, 0, 1,
@@ -54,6 +65,7 @@ func main() {
 		1, 1, 1, 1, 1, 1, 1, 1,
 	}
 
+	// TODO: initialize player somewhere else (maybe object pool for inits)
 	pdx := math.Cos(0) * entity.PlayerSpeed
 	pdy := math.Sin(0) * entity.PlayerSpeed
 
