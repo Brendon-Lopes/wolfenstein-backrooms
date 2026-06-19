@@ -1,6 +1,7 @@
 package engine
 
 import (
+	"fmt"
 	"image/color"
 	"math"
 
@@ -11,7 +12,69 @@ import (
 	"github.com/hajimehoshi/ebiten/v2/vector"
 )
 
-func DrawPlayer(screen *ebiten.Image, p *entity.Player) {
+const TileSize = 64
+
+func DrawRay(screen *ebiten.Image, playerCenterX, playerCenterY float64, p *entity.Player) {
+	var mapFinalX float64
+	var mapFinalY float64
+
+	if p.DeltaY > 0 {
+		fmt.Println("Facing down")
+
+		playerTilePositionY := playerCenterY / float64(TileSize) // Ex.: 100 / 64 = 1.56
+		targetY := math.Ceil(playerTilePositionY)                // Ex.: 1.56 -> 1
+		mapFinalY = targetY * 64
+
+		diffPlayerToY := targetY - playerTilePositionY
+
+		sideDistY := diffPlayerToY / math.Sin(p.Angle)
+
+		playerTilePositionX := playerCenterX / float64(TileSize) // Ex.: 100 / 64 = 1.56
+		finalX := playerTilePositionX + (math.Cos(p.Angle) * sideDistY)
+		mapFinalX = finalX * TileSize
+	}
+
+	if p.DeltaY < 0 {
+		// 1. direction up
+		fmt.Println("Facing up")
+
+		// 2. find first target Y
+		playerTilePositionY := playerCenterY / float64(TileSize) // Ex.: 100 / 64 = 1.56
+		targetY := math.Floor(playerTilePositionY)               // Ex.: 1.56 -> 1
+		mapFinalY = targetY * 64
+
+		// 3. diff from player to Y
+		diffPlayerToY := targetY - playerTilePositionY // inverted subtraction to get negative value, as sine will also be negative, thus result positive
+
+		// 4. sideDistY (hypotenuse) -> SOH -> H = O/S
+		sideDistY := diffPlayerToY / math.Sin(p.Angle)
+
+		// 5. finalX -> finalX = initialX + (direction * hypotenuse)
+		playerTilePositionX := playerCenterX / float64(TileSize) // Ex.: 100 / 64 = 1.56
+		finalX := playerTilePositionX + (math.Cos(p.Angle) * sideDistY)
+		mapFinalX = finalX * TileSize
+	}
+
+	if p.DeltaY == 0 {
+		mapFinalX = playerCenterX + 1000
+		mapFinalY = playerCenterY
+	}
+
+	for range 1 {
+		vector.StrokeLine(
+			screen,
+			float32(playerCenterX),
+			float32(playerCenterY),
+			float32(mapFinalX),
+			float32(mapFinalY),
+			2,
+			color.RGBA{255, 0, 0, 255},
+			false,
+		)
+	}
+}
+
+func DrawMiniPlayer(screen *ebiten.Image, p *entity.Player) {
 	playerSize := 8
 
 	centerX := p.X + (float64(playerSize) / 2)
@@ -42,9 +105,11 @@ func DrawPlayer(screen *ebiten.Image, p *entity.Player) {
 		color.RGBA{255, 255, 0, 255},
 		false,
 	)
+
+	DrawRay(screen, centerX, centerY, p)
 }
 
-func DrawMap(screen *ebiten.Image, m *world.Map) {
+func DrawMiniMap(screen *ebiten.Image, m *world.Map) {
 	var c color.Color
 
 	for y := range m.Height {

@@ -35,8 +35,8 @@ type Game struct {
 
 func (g *Game) Draw(screen *ebiten.Image) {
 	screen.Fill(palette.Gray)
-	engine.DrawMap(screen, g.worldMap)
-	engine.DrawPlayer(screen, g.player)
+	engine.DrawMiniMap(screen, g.worldMap)
+	engine.DrawMiniPlayer(screen, g.player)
 }
 
 func (g *Game) Update() error {
@@ -70,7 +70,7 @@ func main() {
 	pdy := math.Sin(0) * entity.PlayerSpeed
 
 	p := &entity.Player{X: 200, Y: 200, DeltaX: pdx, DeltaY: pdy}
-	m := &world.Map{Width: 8, Height: 8, TileSize: 64, Grid: mapGrid}
+	m := &world.Map{Width: 8, Height: 8, TileSize: engine.TileSize, Grid: mapGrid}
 	g := &Game{p, m}
 
 	if err := ebiten.RunGame(g); err != nil {
