@@ -4,5 +4,5 @@ type Map struct {
 	Width    int
 	Height   int
 	TileSize int
-	Grid     []byte
+	Grid     [64]byte
 }

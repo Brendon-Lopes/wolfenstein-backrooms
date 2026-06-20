@@ -54,7 +54,7 @@ func main() {
 	ebiten.SetWindowTitle("Wolfenrooms")
 
 	// TODO: initialize map somewhere else
-	mapGrid := []byte{
+	mapGrid := [...]byte{
 		1, 1, 1, 1, 1, 1, 1, 1,
 		1, 0, 1, 0, 0, 0, 0, 1,
 		1, 0, 1, 0, 0, 0, 0, 1,

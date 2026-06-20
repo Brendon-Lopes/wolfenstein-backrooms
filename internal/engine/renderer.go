@@ -17,25 +17,23 @@ const TileSize = 64
 func CalculateYRay(screen *ebiten.Image, playerCenterX, playerCenterY float64, p *entity.Player) (float64, float64, float64) {
 	var mapFinalX float64
 	var mapFinalY float64
-	var playerTilePositionY float64
 	var targetY float64
+
+	playerTilePositionY := playerCenterY / TileSize // Ex.: 100 / 64 = 1.56
 
 	// 1. facing up
 	if p.DeltaY < 0 {
-		playerTilePositionY = playerCenterY / float64(TileSize) // Ex.: 100 / 64 = 1.56
-		targetY = math.Floor(playerTilePositionY)               // Ex.: 1.56 -> 1
+		targetY = math.Floor(playerTilePositionY) // Ex.: 1.56 -> 1
 	}
 
 	// facing down
 	if p.DeltaY > 0 {
-		playerTilePositionY = playerCenterY / float64(TileSize)
 		targetY = math.Ceil(playerTilePositionY)
 	}
 
 	if p.DeltaY == 0 {
-		mapFinalX = playerCenterX + 10000
 		mapFinalY = playerCenterY
-		return mapFinalX, mapFinalY, math.Inf(1)
+		return 10000, mapFinalY, math.Inf(1)
 	}
 
 	mapFinalY = targetY * TileSize
@@ -46,7 +44,7 @@ func CalculateYRay(screen *ebiten.Image, playerCenterX, playerCenterY float64, p
 	sideDistY := diffPlayerToY / math.Sin(p.Angle)
 
 	// 5. finalX = initialX + (direction * hypotenuse)
-	playerTilePositionX := playerCenterX / float64(TileSize) // Ex.: 100 / 64 = 1.56
+	playerTilePositionX := playerCenterX / TileSize // Ex.: 100 / 64 = 1.56
 	finalX := playerTilePositionX + (math.Cos(p.Angle) * sideDistY)
 	mapFinalX = finalX * TileSize
 
@@ -56,25 +54,23 @@ func CalculateYRay(screen *ebiten.Image, playerCenterX, playerCenterY float64, p
 func CalculateXRay(screen *ebiten.Image, playerCenterX, playerCenterY float64, p *entity.Player) (float64, float64, float64) {
 	var mapFinalX float64
 	var mapFinalY float64
-	var playerTilePositionX float64
 	var targetX float64
+
+	playerTilePositionX := playerCenterX / TileSize
 
 	// looking right
 	if p.DeltaX > 0 {
-		playerTilePositionX = playerCenterX / TileSize
 		targetX = math.Ceil(playerTilePositionX)
 	}
 
 	// looking left
 	if p.DeltaX < 0 {
-		playerTilePositionX = playerCenterX / TileSize
 		targetX = math.Floor(playerTilePositionX)
 	}
 
 	if p.DeltaX == 0 {
 		mapFinalX = playerCenterX
-		mapFinalY = playerCenterY + 10000
-		return mapFinalX, mapFinalY, math.Inf(1)
+		return mapFinalX, 10000, math.Inf(1)
 	}
 
 	mapFinalX = targetX * TileSize
@@ -135,7 +131,7 @@ func DrawMiniPlayer(screen *ebiten.Image, p *entity.Player) {
 		finalRayX, finalRayY = verticalRayX, verticalRayY
 	}
 
-	fmt.Printf("X: %f, Y: %f", finalRayX, finalRayY)
+	fmt.Printf("X: %f, Y: %f\n", finalRayX, finalRayY)
 
 	vector.StrokeLine(
 		screen,
