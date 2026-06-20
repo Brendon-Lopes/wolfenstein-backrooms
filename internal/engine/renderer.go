@@ -1,6 +1,7 @@
 package engine
 
 import (
+	"fmt"
 	"image/color"
 	"math"
 
@@ -13,7 +14,7 @@ import (
 
 const TileSize = 64
 
-func DrawRayY(screen *ebiten.Image, playerCenterX, playerCenterY float64, p *entity.Player) {
+func CalculateYRay(screen *ebiten.Image, playerCenterX, playerCenterY float64, p *entity.Player) (float64, float64, float64) {
 	var mapFinalX float64
 	var mapFinalY float64
 	var playerTilePositionY float64
@@ -34,15 +35,14 @@ func DrawRayY(screen *ebiten.Image, playerCenterX, playerCenterY float64, p *ent
 	if p.DeltaY == 0 {
 		mapFinalX = playerCenterX + 10000
 		mapFinalY = playerCenterY
+		return mapFinalX, mapFinalY, math.Inf(1)
 	}
 
-	// 2. find first target Y
 	mapFinalY = targetY * TileSize
 
-	// 3. diff from player to Y
 	diffPlayerToY := targetY - playerTilePositionY // inverted subtraction to get negative value, as sine will also be negative, thus result positive
 
-	// 4. sideDistY (hypotenuse) -> SOH -> H = O/S
+	// sideDistY (hypotenuse) -> SOH -> H = O/S
 	sideDistY := diffPlayerToY / math.Sin(p.Angle)
 
 	// 5. finalX = initialX + (direction * hypotenuse)
@@ -50,21 +50,10 @@ func DrawRayY(screen *ebiten.Image, playerCenterX, playerCenterY float64, p *ent
 	finalX := playerTilePositionX + (math.Cos(p.Angle) * sideDistY)
 	mapFinalX = finalX * TileSize
 
-	for range 1 {
-		vector.StrokeLine(
-			screen,
-			float32(playerCenterX),
-			float32(playerCenterY),
-			float32(mapFinalX),
-			float32(mapFinalY),
-			2,
-			color.RGBA{255, 0, 0, 255},
-			false,
-		)
-	}
+	return mapFinalX, mapFinalY, sideDistY
 }
 
-func DrawRayX(screen *ebiten.Image, playerCenterX, playerCenterY float64, p *entity.Player) {
+func CalculateXRay(screen *ebiten.Image, playerCenterX, playerCenterY float64, p *entity.Player) (float64, float64, float64) {
 	var mapFinalX float64
 	var mapFinalY float64
 	var playerTilePositionX float64
@@ -85,6 +74,7 @@ func DrawRayX(screen *ebiten.Image, playerCenterX, playerCenterY float64, p *ent
 	if p.DeltaX == 0 {
 		mapFinalX = playerCenterX
 		mapFinalY = playerCenterY + 10000
+		return mapFinalX, mapFinalY, math.Inf(1)
 	}
 
 	mapFinalX = targetX * TileSize
@@ -99,18 +89,7 @@ func DrawRayX(screen *ebiten.Image, playerCenterX, playerCenterY float64, p *ent
 	finalY := playerTilePositionY + (math.Sin(p.Angle) * sideDistX)
 	mapFinalY = finalY * TileSize
 
-	for range 1 {
-		vector.StrokeLine(
-			screen,
-			float32(playerCenterX),
-			float32(playerCenterY),
-			float32(mapFinalX),
-			float32(mapFinalY),
-			4,
-			color.RGBA{0, 255, 0, 255},
-			false,
-		)
-	}
+	return mapFinalX, mapFinalY, sideDistX
 }
 
 func DrawMiniPlayer(screen *ebiten.Image, p *entity.Player) {
@@ -145,8 +124,29 @@ func DrawMiniPlayer(screen *ebiten.Image, p *entity.Player) {
 		false,
 	)
 
-	DrawRayY(screen, centerX, centerY, p)
-	DrawRayX(screen, centerX, centerY, p)
+	verticalRayX, verticalRayY, sideDistY := CalculateYRay(screen, centerX, centerY, p)
+	horizontalRayX, horizontalRayY, sideDistX := CalculateXRay(screen, centerX, centerY, p)
+
+	var finalRayX, finalRayY float64
+
+	if sideDistY > sideDistX {
+		finalRayX, finalRayY = horizontalRayX, horizontalRayY
+	} else {
+		finalRayX, finalRayY = verticalRayX, verticalRayY
+	}
+
+	fmt.Printf("X: %f, Y: %f", finalRayX, finalRayY)
+
+	vector.StrokeLine(
+		screen,
+		float32(centerX),
+		float32(centerY),
+		float32(finalRayX),
+		float32(finalRayY),
+		2,
+		color.RGBA{255, 0, 0, 255},
+		false,
+	)
 }
 
 func DrawMiniMap(screen *ebiten.Image, m *world.Map) {
