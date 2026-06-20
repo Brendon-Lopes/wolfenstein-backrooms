@@ -13,48 +13,42 @@ import (
 
 const TileSize = 64
 
-func DrawRay(screen *ebiten.Image, playerCenterX, playerCenterY float64, p *entity.Player) {
+func DrawRayY(screen *ebiten.Image, playerCenterX, playerCenterY float64, p *entity.Player) {
 	var mapFinalX float64
 	var mapFinalY float64
+	var playerTilePositionY float64
+	var targetY float64
 
 	// 1. facing up
 	if p.DeltaY < 0 {
-		// 2. find first target Y
-		playerTilePositionY := playerCenterY / float64(TileSize) // Ex.: 100 / 64 = 1.56
-		targetY := math.Floor(playerTilePositionY)               // Ex.: 1.56 -> 1
-		mapFinalY = targetY * TileSize
-
-		// 3. diff from player to Y
-		diffPlayerToY := targetY - playerTilePositionY // inverted subtraction to get negative value, as sine will also be negative, thus result positive
-
-		// 4. sideDistY (hypotenuse) -> SOH -> H = O/S
-		sideDistY := diffPlayerToY / math.Sin(p.Angle)
-
-		// 5. finalX = initialX + (direction * hypotenuse)
-		playerTilePositionX := playerCenterX / float64(TileSize) // Ex.: 100 / 64 = 1.56
-		finalX := playerTilePositionX + (math.Cos(p.Angle) * sideDistY)
-		mapFinalX = finalX * TileSize
+		playerTilePositionY = playerCenterY / float64(TileSize) // Ex.: 100 / 64 = 1.56
+		targetY = math.Floor(playerTilePositionY)               // Ex.: 1.56 -> 1
 	}
 
 	// facing down
 	if p.DeltaY > 0 {
-		playerTilePositionY := playerCenterY / float64(TileSize)
-		targetY := math.Ceil(playerTilePositionY)
-		mapFinalY = targetY * TileSize
-
-		diffPlayerToY := targetY - playerTilePositionY
-
-		sideDistY := diffPlayerToY / math.Sin(p.Angle)
-
-		playerTilePositionX := playerCenterX / float64(TileSize)
-		finalX := playerTilePositionX + (math.Cos(p.Angle) * sideDistY)
-		mapFinalX = finalX * TileSize
+		playerTilePositionY = playerCenterY / float64(TileSize)
+		targetY = math.Ceil(playerTilePositionY)
 	}
 
 	if p.DeltaY == 0 {
 		mapFinalX = playerCenterX + 10000
 		mapFinalY = playerCenterY
 	}
+
+	// 2. find first target Y
+	mapFinalY = targetY * TileSize
+
+	// 3. diff from player to Y
+	diffPlayerToY := targetY - playerTilePositionY // inverted subtraction to get negative value, as sine will also be negative, thus result positive
+
+	// 4. sideDistY (hypotenuse) -> SOH -> H = O/S
+	sideDistY := diffPlayerToY / math.Sin(p.Angle)
+
+	// 5. finalX = initialX + (direction * hypotenuse)
+	playerTilePositionX := playerCenterX / float64(TileSize) // Ex.: 100 / 64 = 1.56
+	finalX := playerTilePositionX + (math.Cos(p.Angle) * sideDistY)
+	mapFinalX = finalX * TileSize
 
 	for range 1 {
 		vector.StrokeLine(
@@ -73,49 +67,37 @@ func DrawRay(screen *ebiten.Image, playerCenterX, playerCenterY float64, p *enti
 func DrawRayX(screen *ebiten.Image, playerCenterX, playerCenterY float64, p *entity.Player) {
 	var mapFinalX float64
 	var mapFinalY float64
+	var playerTilePositionX float64
+	var targetX float64
 
-	// 1 looking right
+	// looking right
 	if p.DeltaX > 0 {
-		// 2
-		playerTilePositionX := playerCenterX / TileSize
-		targetX := math.Ceil(playerTilePositionX)
-		mapFinalX = targetX * TileSize
-
-		// 3
-		diffPlayerToX := targetX - playerTilePositionX
-
-		// 4 CAH -> h = a / c
-		sideDistX := diffPlayerToX / math.Cos(p.Angle)
-
-		// 5 finalY = initialY + (dir * hypotenuse)
-		playerTilePositionY := playerCenterY / TileSize
-		finalY := playerTilePositionY + (math.Sin(p.Angle) * sideDistX)
-		mapFinalY = finalY * TileSize
+		playerTilePositionX = playerCenterX / TileSize
+		targetX = math.Ceil(playerTilePositionX)
 	}
 
+	// looking left
 	if p.DeltaX < 0 {
-		// 2
-		playerTilePositionX := playerCenterX / TileSize
-		targetX := math.Floor(playerTilePositionX)
-		mapFinalX = targetX * TileSize
-
-		// 3
-		diffPlayerToX := targetX - playerTilePositionX
-
-		// 4 CAH -> h = a / c
-		sideDistX := diffPlayerToX / math.Cos(p.Angle)
-
-		// 5 finalY = initialY + (dir * hypotenuse)
-		playerTilePositionY := playerCenterY / TileSize
-		finalY := playerTilePositionY + (math.Sin(p.Angle) * sideDistX)
-		mapFinalY = finalY * TileSize
-
+		playerTilePositionX = playerCenterX / TileSize
+		targetX = math.Floor(playerTilePositionX)
 	}
 
 	if p.DeltaX == 0 {
 		mapFinalX = playerCenterX
 		mapFinalY = playerCenterY + 10000
 	}
+
+	mapFinalX = targetX * TileSize
+
+	diffPlayerToX := targetX - playerTilePositionX
+
+	// CAH -> h = a / c
+	sideDistX := diffPlayerToX / math.Cos(p.Angle)
+
+	// finalY = initialY + (dir * hypotenuse)
+	playerTilePositionY := playerCenterY / TileSize
+	finalY := playerTilePositionY + (math.Sin(p.Angle) * sideDistX)
+	mapFinalY = finalY * TileSize
 
 	for range 1 {
 		vector.StrokeLine(
@@ -163,7 +145,7 @@ func DrawMiniPlayer(screen *ebiten.Image, p *entity.Player) {
 		false,
 	)
 
-	DrawRay(screen, centerX, centerY, p)
+	DrawRayY(screen, centerX, centerY, p)
 	DrawRayX(screen, centerX, centerY, p)
 }
 
