@@ -19,8 +19,12 @@ func GetDeltaDistX(rayAngle float64) (float64, int) {
 
 	if rayDir < 0 {
 		stepX = -1
-	} else {
+	}
+	if rayDir > 0 {
 		stepX = 1
+	}
+	if rayDir == 0 {
+		return math.Inf(1), stepX
 	}
 
 	// CAH -> h=a/c
@@ -42,8 +46,12 @@ func GetDeltaDistY(rayAngle float64) (float64, int) {
 
 	if rayDir < 0 {
 		stepY = -1
-	} else {
+	}
+	if rayDir > 0 {
 		stepY = 1
+	}
+	if rayDir == 0 {
+		return math.Inf(1), stepY
 	}
 
 	// SOH -> h=o/s
@@ -103,7 +111,7 @@ func GetSideDistY(playerTileY float64, stepY int, deltaDistY float64) (float64, 
 }
 
 /*
-[CalculateRays] performs raycasting from the player's position to find the first wall intersection point.
+[CalculateRay] performs raycasting from the player's position to find the first wall intersection point.
 
 Parameters:
   - centerX: The player's X coordinate in pixel space.
@@ -115,7 +123,7 @@ Returns:
   - finalX: The X coordinate where the ray hits a wall (in pixel space).
   - finalY: The Y coordinate where the ray hits a wall (in pixel space).
 */
-func CalculateRays(centerX, centerY, angle float64, m *world.Map) (float64, float64) {
+func CalculateRay(centerX, centerY, angle float64, m *world.Map) (float64, float64) {
 	playerTileX := centerX / float64(TileSize)
 	playerTileY := centerY / float64(TileSize)
 

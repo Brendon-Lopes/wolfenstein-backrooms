@@ -12,47 +12,42 @@ import (
 )
 
 const TileSize = 64
+const PlayerSize = 8
 
 func DrawMiniPlayer(screen *ebiten.Image, p *entity.Player, m *world.Map) {
-	playerSize := 8
 
-	centerX := p.X + (float64(playerSize) / 2)
-	centerY := p.Y + (float64(playerSize) / 2)
+	centerX := p.X + (float64(PlayerSize) / 2)
+	centerY := p.Y + (float64(PlayerSize) / 2)
 	lineLength := 25.0
 
 	// player square
 	vector.FillRect(
 		screen,
-		float32(p.X),
-		float32(p.Y),
-		float32(playerSize),
-		float32(playerSize),
+		float32(p.X), float32(p.Y),
+		float32(PlayerSize), float32(PlayerSize),
 		// TODO: not alocate color every render
-		color.RGBA{255, 255, 0, 255},
-		false,
+		color.RGBA{255, 255, 0, 255}, false,
 	)
 
 	// player direction line
 	vector.StrokeLine(
 		screen,
-		float32(centerX),
-		float32(centerY),
-		float32(centerX+math.Cos(p.Angle)*lineLength),
-		float32(centerY+math.Sin(p.Angle)*lineLength),
-		1,
+		float32(centerX), float32(centerY),
+		float32(centerX+math.Cos(p.Angle)*lineLength), float32(centerY+math.Sin(p.Angle)*lineLength),
 		// TODO: not alocate color every render
-		color.RGBA{255, 255, 0, 255},
-		false,
+		1, color.RGBA{255, 255, 0, 255}, false,
 	)
 
 	for range 1 {
-		finalX, finalY := CalculateRays(centerX, centerY, p.Angle, m)
+		finalX, finalY := CalculateRay(centerX, centerY, p.Angle, m)
 
 		vector.StrokeLine(
 			screen,
 			float32(centerX), float32(centerY),
 			float32(finalX), float32(finalY),
-			2, color.RGBA{255, 0, 0, 255}, false,
+			2,
+			color.RGBA{255, 0, 0, 255},
+			false,
 		)
 	}
 }
@@ -73,20 +68,15 @@ func DrawMiniMap(screen *ebiten.Image, m *world.Map) {
 
 			vector.FillRect(
 				screen,
-				float32(xo),
-				float32(yo),
-				float32(m.TileSize),
-				float32(m.TileSize),
-				c,
-				false,
+				float32(xo), float32(yo),
+				float32(m.TileSize), float32(m.TileSize),
+				c, false,
 			)
 
 			vector.StrokeRect(
 				screen,
-				float32(xo),
-				float32(yo),
-				float32(m.TileSize),
-				float32(m.TileSize),
+				float32(xo), float32(yo),
+				float32(m.TileSize), float32(m.TileSize),
 				2,
 				color.RGBA{50, 50, 50, 255},
 				false,
