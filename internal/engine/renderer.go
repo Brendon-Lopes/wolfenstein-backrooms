@@ -12,14 +12,14 @@ import (
 
 const PlayerSize = 4
 
-func DrawMiniMap(screen *ebiten.Image, p *entity.Player, m *world.Map, scale, offsetX, offsetY float32) {
+func DrawMiniMap(screen *ebiten.Image, p *entity.Player, m *world.Map, scale, minimapOffsetX, minimapOffsetY float32) {
 	var c color.Color
-	tileSize := float32(m.TileSize) * scale
+	blockSize := float32(m.TileSize) * scale
 
 	for y := range m.Height {
 		for x := range m.Width {
-			xOffset := float32(x) * tileSize
-			yOffset := float32(y) * tileSize
+			xOffset := float32(x)*blockSize + minimapOffsetX
+			yOffset := float32(y)*blockSize + minimapOffsetY
 
 			if m.Grid[y*m.Width+x] == 1 {
 				c = color.White
@@ -30,14 +30,15 @@ func DrawMiniMap(screen *ebiten.Image, p *entity.Player, m *world.Map, scale, of
 			vector.FillRect(
 				screen,
 				float32(xOffset), float32(yOffset),
-				float32(tileSize), float32(tileSize),
-				c, false,
+				float32(blockSize), float32(blockSize),
+				c,
+				false,
 			)
 
 			vector.StrokeRect(
 				screen,
 				float32(xOffset), float32(yOffset),
-				float32(tileSize), float32(tileSize),
+				float32(blockSize), float32(blockSize),
 				1,
 				color.RGBA{50, 50, 50, 255},
 				false,
@@ -45,8 +46,8 @@ func DrawMiniMap(screen *ebiten.Image, p *entity.Player, m *world.Map, scale, of
 		}
 	}
 
-	centerX := (p.X*float64(scale) + (float64(PlayerSize) / 2))
-	centerY := (p.Y*float64(scale) + (float64(PlayerSize) / 2))
+	centerX := (p.X*float64(scale) + (float64(PlayerSize) / 2)) + float64(minimapOffsetX)
+	centerY := (p.Y*float64(scale) + (float64(PlayerSize) / 2)) + float64(minimapOffsetY)
 	lineLength := 10.0
 
 	screenHeight := screen.Bounds().Dy()
@@ -55,23 +56,35 @@ func DrawMiniMap(screen *ebiten.Image, p *entity.Player, m *world.Map, scale, of
 	worldCenterX := p.X + (float64(PlayerSize) / 2)
 	worldCenterY := p.Y + (float64(PlayerSize) / 2)
 
+	batchSize := screenWidth / 20
+
 	for x := range screenWidth {
-		finalX, finalY, _, _ := CalculateRay(x, screenWidth, screenHeight, worldCenterX, worldCenterY, m, p)
+		if x%batchSize != 0 {
+			continue
+		}
+
+		rayX, rayY, _, _ := CalculateRay(x, screenWidth, screenHeight, worldCenterX, worldCenterY, m, p)
+
+		finalX := rayX*float64(scale) + float64(minimapOffsetX)
+		finalY := rayY*float64(scale) + float64(minimapOffsetY)
 
 		vector.StrokeLine(
 			screen,
 			float32(centerX), float32(centerY),
-			float32(finalX*float64(scale)), float32(finalY*float64(scale)),
-			2,
+			float32(finalX), float32(finalY),
+			1,
 			color.RGBA{255, 0, 0, 255},
 			false,
 		)
 	}
 
+	playerX := p.X*float64(scale) + float64(minimapOffsetX)
+	playerY := p.Y*float64(scale) + float64(minimapOffsetY)
+
 	// player square
 	vector.FillRect(
 		screen,
-		float32(p.X*float64(scale)), float32(p.Y*float64(scale)),
+		float32(playerX), float32(playerY),
 		float32(PlayerSize), float32(PlayerSize),
 		// TODO: not alocate color every render
 		color.RGBA{255, 255, 0, 255}, false,
@@ -87,7 +100,6 @@ func DrawMiniMap(screen *ebiten.Image, p *entity.Player, m *world.Map, scale, of
 		color.RGBA{255, 255, 0, 255},
 		false,
 	)
-
 }
 
 func Draw3dWorld(screen *ebiten.Image, p *entity.Player, m *world.Map) {
@@ -96,9 +108,12 @@ func Draw3dWorld(screen *ebiten.Image, p *entity.Player, m *world.Map) {
 
 	screenHeight := screen.Bounds().Dy()
 	screenWidth := screen.Bounds().Dx()
+	rectWidth := 4
 
 	for x := range screenWidth {
-		// finalX, finalY, wallHeight, side := CalculateRay(x, screenWidth, screenHeight, centerX, centerY, m, p)
+		if x%rectWidth != 0 {
+			continue
+		}
 		_, _, wallHeight, side := CalculateRay(x, screenWidth, screenHeight, centerX, centerY, m, p)
 
 		drawStart := (screenHeight - int(wallHeight)) / 2
@@ -112,7 +127,7 @@ func Draw3dWorld(screen *ebiten.Image, p *entity.Player, m *world.Map) {
 
 		vector.FillRect(screen,
 			float32(x), float32(drawStart),
-			1, float32(wallHeight),
+			float32(rectWidth), float32(wallHeight),
 			c,
 			false,
 		)
