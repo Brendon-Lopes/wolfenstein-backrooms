@@ -4,12 +4,14 @@ import (
 	"image/color"
 	"log"
 	"math"
+	"strconv"
 
 	"github.com/Brendon-Lopes/wolfenstein-backrooms/internal/engine"
 	"github.com/Brendon-Lopes/wolfenstein-backrooms/internal/entity"
 	"github.com/Brendon-Lopes/wolfenstein-backrooms/internal/input"
 	"github.com/Brendon-Lopes/wolfenstein-backrooms/internal/world"
 	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
 )
 
 const (
@@ -37,6 +39,9 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	screen.Fill(palette.Gray)
 	engine.DrawMiniMap(screen, g.worldMap)
 	engine.DrawMiniPlayer(screen, g.player)
+
+	fps := ebiten.ActualFPS()
+	ebitenutil.DebugPrintAt(screen, "FPS: "+strconv.FormatFloat(fps, 'f', 0, 64), windowWidth-60, 10)
 }
 
 func (g *Game) Update() error {
