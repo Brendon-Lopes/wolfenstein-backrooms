@@ -14,11 +14,11 @@ import (
 )
 
 const (
-	windowWidth  = 1024
-	windowHeight = 512
-	resDivision  = 1
+	windowWidth  = 1280
+	windowHeight = 720
+	resDivision  = 2
 
-	minimapScale   = 0.25
+	minimapScale   = 0.125
 	minimapOffsetX = 10
 	minimapOffsetY = 10
 )
