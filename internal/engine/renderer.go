@@ -18,8 +18,8 @@ func DrawMiniMap(screen *ebiten.Image, p *entity.Player, m *world.Map, scale, of
 
 	for y := range m.Height {
 		for x := range m.Width {
-			xo := float32(x) * tileSize
-			yo := float32(y) * tileSize
+			xOffset := float32(x) * tileSize
+			yOffset := float32(y) * tileSize
 
 			if m.Grid[y*m.Width+x] == 1 {
 				c = color.White
@@ -29,20 +29,43 @@ func DrawMiniMap(screen *ebiten.Image, p *entity.Player, m *world.Map, scale, of
 
 			vector.FillRect(
 				screen,
-				float32(xo), float32(yo),
+				float32(xOffset), float32(yOffset),
 				float32(tileSize), float32(tileSize),
 				c, false,
 			)
 
 			vector.StrokeRect(
 				screen,
-				float32(xo), float32(yo),
+				float32(xOffset), float32(yOffset),
 				float32(tileSize), float32(tileSize),
 				1,
 				color.RGBA{50, 50, 50, 255},
 				false,
 			)
 		}
+	}
+
+	centerX := (p.X*float64(scale) + (float64(PlayerSize) / 2))
+	centerY := (p.Y*float64(scale) + (float64(PlayerSize) / 2))
+	lineLength := 10.0
+
+	screenHeight := screen.Bounds().Dy()
+	screenWidth := screen.Bounds().Dx()
+
+	worldCenterX := p.X + (float64(PlayerSize) / 2)
+	worldCenterY := p.Y + (float64(PlayerSize) / 2)
+
+	for x := range screenWidth {
+		finalX, finalY, _, _ := CalculateRay(x, screenWidth, screenHeight, worldCenterX, worldCenterY, m, p)
+
+		vector.StrokeLine(
+			screen,
+			float32(centerX), float32(centerY),
+			float32(finalX*float64(scale)), float32(finalY*float64(scale)),
+			2,
+			color.RGBA{255, 0, 0, 255},
+			false,
+		)
 	}
 
 	// player square
@@ -54,10 +77,6 @@ func DrawMiniMap(screen *ebiten.Image, p *entity.Player, m *world.Map, scale, of
 		color.RGBA{255, 255, 0, 255}, false,
 	)
 
-	centerX := (p.X*float64(scale) + (float64(PlayerSize) / 2))
-	centerY := (p.Y*float64(scale) + (float64(PlayerSize) / 2))
-	lineLength := 10.0
-
 	// player direction line
 	vector.StrokeLine(
 		screen,
@@ -68,6 +87,7 @@ func DrawMiniMap(screen *ebiten.Image, p *entity.Player, m *world.Map, scale, of
 		color.RGBA{255, 255, 0, 255},
 		false,
 	)
+
 }
 
 func Draw3dWorld(screen *ebiten.Image, p *entity.Player, m *world.Map) {
@@ -76,7 +96,6 @@ func Draw3dWorld(screen *ebiten.Image, p *entity.Player, m *world.Map) {
 
 	screenHeight := screen.Bounds().Dy()
 	screenWidth := screen.Bounds().Dx()
-	// xOffset := width
 
 	for x := range screenWidth {
 		// finalX, finalY, wallHeight, side := CalculateRay(x, screenWidth, screenHeight, centerX, centerY, m, p)
@@ -97,14 +116,5 @@ func Draw3dWorld(screen *ebiten.Image, p *entity.Player, m *world.Map) {
 			c,
 			false,
 		)
-
-		// vector.StrokeLine(
-		// 	screen,
-		// 	float32(centerX), float32(centerY),
-		// 	float32(finalX), float32(finalY),
-		// 	2,
-		// 	color.RGBA{255, 0, 0, 255},
-		// 	false,
-		// )
 	}
 }
