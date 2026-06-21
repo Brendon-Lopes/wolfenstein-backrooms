@@ -11,7 +11,7 @@ type Player struct {
 }
 
 const PlayerSpeed float64 = 2
-const AngleStep = 0.1
+const AngleStep = 0.05
 
 /*
 [Move] moves the player in a given direction (dir).

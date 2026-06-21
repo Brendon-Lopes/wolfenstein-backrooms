@@ -39,6 +39,7 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	screen.Fill(palette.Gray)
 	engine.DrawMiniMap(screen, g.worldMap)
 	engine.DrawMiniPlayer(screen, g.player, g.worldMap)
+	engine.Draw3dWorld(screen, g.player, g.worldMap)
 
 	fps := ebiten.ActualFPS()
 	ebitenutil.DebugPrintAt(screen, "FPS: "+strconv.FormatFloat(fps, 'f', 0, 64), windowWidth-60, 10)
