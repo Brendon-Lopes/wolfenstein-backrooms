@@ -122,7 +122,7 @@ Returns:
   - finalX: The X coordinate where the ray hits a wall (in pixel space).
   - finalY: The Y coordinate where the ray hits a wall (in pixel space).
 */
-func CalculateRay(x, screenWidth int, centerX, centerY float64, m *world.Map, p *entity.Player) (float64, float64, float64) {
+func CalculateRay(x, screenWidth int, centerX, centerY float64, m *world.Map, p *entity.Player) (float64, float64, float64, int) {
 	cameraX := (2.0 * float64(x) / float64(screenWidth)) - 1.0
 
 	rayDirX := p.DirX + (p.PlaneX * cameraX)
@@ -181,5 +181,5 @@ func CalculateRay(x, screenWidth int, centerX, centerY float64, m *world.Map, p 
 
 	wallHeight := float64(screenWidth) / perpWallDist
 
-	return finalX, finalY, wallHeight
+	return finalX, finalY, wallHeight, side
 }

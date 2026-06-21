@@ -1,7 +1,6 @@
 package engine
 
 import (
-	"fmt"
 	"image/color"
 	"math"
 
@@ -40,11 +39,27 @@ func DrawMiniPlayer(screen *ebiten.Image, p *entity.Player, m *world.Map) {
 	)
 
 	screenWidth := 512
+	screenHeight := 512
+	xOffset := 512
 
 	for x := range screenWidth {
-		finalX, finalY, wallHeight := CalculateRay(x, screenWidth, centerX, centerY, m, p)
+		finalX, finalY, wallHeight, side := CalculateRay(x, screenWidth, centerX, centerY, m, p)
 
-		fmt.Println(wallHeight)
+		drawStart := (screenHeight - int(wallHeight)) / 2
+
+		var c color.Color
+		if side == 0 {
+			c = color.RGBA{180, 180, 180, 255}
+		} else {
+			c = color.RGBA{120, 120, 120, 255}
+		}
+
+		vector.FillRect(screen,
+			float32(x+xOffset), float32(drawStart),
+			1, float32(wallHeight),
+			c,
+			false,
+		)
 
 		vector.StrokeLine(
 			screen,
