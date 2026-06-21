@@ -3,19 +3,19 @@ package engine
 import (
 	"math"
 
+	"github.com/Brendon-Lopes/wolfenstein-backrooms/internal/entity"
 	"github.com/Brendon-Lopes/wolfenstein-backrooms/internal/world"
 )
 
 /*
-[GetDeltaDistX] calculates the length of the ray's hypotenuse when it travels exactly one map grid unit along the Y-axis.
+[getDeltaDistX] calculates the length of the ray's hypotenuse when it travels exactly one map grid unit along the Y-axis.
 
 Returns:
   - deltaDistX: The absolute length of the hypotenuse for a full grid step.
   - stepX: The direction to step on the map grid (-1 for left or 1 right).
 */
-func GetDeltaDistX(rayAngle float64) (float64, int) {
+func getDeltaDistX(rayDir float64) (float64, int) {
 	var stepX int
-	rayDir := math.Cos(rayAngle)
 
 	if rayDir < 0 {
 		stepX = -1
@@ -34,15 +34,14 @@ func GetDeltaDistX(rayAngle float64) (float64, int) {
 }
 
 /*
-[GetDeltaDistY] calculates the length of the ray's hypotenuse when it travels exactly one map grid unit along the Y-axis.
+[getDeltaDistY] calculates the length of the ray's hypotenuse when it travels exactly one map grid unit along the Y-axis.
 
 Returns:
   - deltaDistY: The absolute length of the hypotenuse for a full grid step.
   - stepY: The direction to step on the map grid (-1 for up or 1 for down).
 */
-func GetDeltaDistY(rayAngle float64) (float64, int) {
+func getDeltaDistY(rayDir float64) (float64, int) {
 	var stepY int
-	rayDir := math.Sin(rayAngle)
 
 	if rayDir < 0 {
 		stepY = -1
@@ -61,7 +60,7 @@ func GetDeltaDistY(rayAngle float64) (float64, int) {
 }
 
 /*
-[GetSideDistX] calculates the initial ray distance from the player's exact position to the first vertical grid line intersection.
+[getSideDistX] calculates the initial ray distance from the player's exact position to the first vertical grid line intersection.
 
 Parameters:
   - playerTileX: The player's exact X coordinate in logical map units (e.g., 1.2).
@@ -72,7 +71,7 @@ Returns:
   - sideDistX: The total ray length to reach the first vertical grid boundary.
   - mapX: The integer map coordinate where the player is currently standing.
 */
-func GetSideDistX(playerTileX float64, stepX int, deltaDistX float64) (float64, int) {
+func getSideDistX(playerTileX float64, stepX int, deltaDistX float64) (float64, int) {
 	var sideDistX float64
 	mapX := int(playerTileX)
 
@@ -86,7 +85,7 @@ func GetSideDistX(playerTileX float64, stepX int, deltaDistX float64) (float64, 
 }
 
 /*
-[GetSideDistY] calculates the initial ray distance from the player's exact position to the first horizontal grid line intersection.
+[getSideDistY] calculates the initial ray distance from the player's exact position to the first horizontal grid line intersection.
 
 Parameters:
   - playerTileY: The player's exact Y coordinate in logical map units (e.g., 1.2).
@@ -97,7 +96,7 @@ Returns:
   - sideDistY: The total ray length to reach the first horizontal grid boundary.
   - mapY: The integer map coordinate where the player is currently standing.
 */
-func GetSideDistY(playerTileY float64, stepY int, deltaDistY float64) (float64, int) {
+func getSideDistY(playerTileY float64, stepY int, deltaDistY float64) (float64, int) {
 	var sideDistY float64
 	mapY := int(playerTileY)
 
@@ -123,15 +122,20 @@ Returns:
   - finalX: The X coordinate where the ray hits a wall (in pixel space).
   - finalY: The Y coordinate where the ray hits a wall (in pixel space).
 */
-func CalculateRay(centerX, centerY, angle float64, m *world.Map) (float64, float64) {
+func CalculateRay(x, screenWidth int, centerX, centerY float64, m *world.Map, p *entity.Player) (float64, float64, float64) {
+	cameraX := (2.0 * float64(x) / float64(screenWidth)) - 1.0
+
+	rayDirX := p.DirX + (p.PlaneX * cameraX)
+	rayDirY := p.DirY + (p.PlaneY * cameraX)
+
 	playerTileX := centerX / float64(TileSize)
 	playerTileY := centerY / float64(TileSize)
 
-	deltaDistX, stepX := GetDeltaDistX(angle)
-	deltaDistY, stepY := GetDeltaDistY(angle)
+	deltaDistX, stepX := getDeltaDistX(rayDirX)
+	deltaDistY, stepY := getDeltaDistY(rayDirY)
 
-	sideDistX, mapX := GetSideDistX(playerTileX, stepX, deltaDistX)
-	sideDistY, mapY := GetSideDistY(playerTileY, stepY, deltaDistY)
+	sideDistX, mapX := getSideDistX(playerTileX, stepX, deltaDistX)
+	sideDistY, mapY := getSideDistY(playerTileY, stepY, deltaDistY)
 
 	hit := false
 	side := 0 // 0 = hit X, 1 = hit Y
@@ -165,11 +169,17 @@ func CalculateRay(centerX, centerY, angle float64, m *world.Map) (float64, float
 		totalDistance = sideDistY - deltaDistY
 	}
 
-	rayDirX := math.Cos(angle)
-	rayDirY := math.Sin(angle)
-
 	finalX := centerX + (rayDirX * totalDistance * float64(TileSize))
 	finalY := centerY + (rayDirY * totalDistance * float64(TileSize))
 
-	return finalX, finalY
+	var perpWallDist float64
+	if side == 0 {
+		perpWallDist = sideDistX - deltaDistX
+	} else {
+		perpWallDist = sideDistY - deltaDistY
+	}
+
+	wallHeight := float64(screenWidth) / perpWallDist
+
+	return finalX, finalY, wallHeight
 }

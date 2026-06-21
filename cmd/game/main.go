@@ -74,7 +74,7 @@ func main() {
 	pdx := math.Cos(0) * entity.PlayerSpeed
 	pdy := math.Sin(0) * entity.PlayerSpeed
 
-	p := &entity.Player{X: 200, Y: 200, DeltaX: pdx, DeltaY: pdy}
+	p := &entity.Player{X: 200, Y: 200, DeltaX: pdx, DeltaY: pdy, DirX: 1, DirY: 0, PlaneX: 0, PlaneY: 0.66}
 	m := &world.Map{Width: 8, Height: 8, TileSize: engine.TileSize, Grid: mapGrid}
 	g := &Game{p, m}
 

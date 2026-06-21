@@ -7,14 +7,14 @@ import (
 )
 
 type Player struct {
-	X, Y, DeltaX, DeltaY, Angle float64
+	X, Y, DeltaX, DeltaY, DirX, DirY, PlaneX, PlaneY, Angle float64
 }
 
 const PlayerSpeed float64 = 2
 const AngleStep = 0.1
 
 /*
-Move moves the player in a given direction (dir).
+[Move] moves the player in a given direction (dir).
 Dir is 1 for forward and -1 for backward.
 */
 func Move(p *Player, dir float64) {
@@ -23,7 +23,7 @@ func Move(p *Player, dir float64) {
 }
 
 /*
-Rotate rotates the player by a given direction (dir).
+[Rotate] rotates the player by a given direction (dir).
 The direction is 1 or -1.
 The player's angle is updated based on the AngleStep constant,
 and the DeltaX and DeltaY values are recalculated based on the new angle.
@@ -38,8 +38,15 @@ func Rotate(p *Player, dir float64) {
 		p.Angle -= 2 * math.Pi
 	}
 
-	p.DeltaX = math.Cos(p.Angle) * PlayerSpeed
-	p.DeltaY = math.Sin(p.Angle) * PlayerSpeed
+	p.DirX = math.Cos(p.Angle)
+	p.DirY = math.Sin(p.Angle)
+
+	// TODO: centralize FOV somewhere else
+	p.PlaneX = -p.DirY * 0.66
+	p.PlaneY = p.DirX * 0.66
+
+	p.DeltaX = p.DirX * PlayerSpeed
+	p.DeltaY = p.DirY * PlayerSpeed
 }
 
 func UpdatePlayer(p *Player, cmd input.Command) {
