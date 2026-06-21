@@ -11,7 +11,16 @@ type Player struct {
 }
 
 const PlayerSpeed float64 = 2
-const AngleStep = 0.05
+const AngleStep = 0.04
+
+func NewPlayer() *Player {
+	return &Player{
+		X: 200, Y: 200,
+		DeltaX: math.Cos(0) * PlayerSpeed, DeltaY: math.Sin(0) * PlayerSpeed,
+		DirX: 1, DirY: 0,
+		PlaneX: 0, PlaneY: 0.66,
+	}
+}
 
 /*
 [Move] moves the player in a given direction (dir).

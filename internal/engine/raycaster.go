@@ -122,14 +122,14 @@ Returns:
   - finalX: The X coordinate where the ray hits a wall (in pixel space).
   - finalY: The Y coordinate where the ray hits a wall (in pixel space).
 */
-func CalculateRay(x, screenWidth int, centerX, centerY float64, m *world.Map, p *entity.Player) (float64, float64, float64, int) {
+func CalculateRay(x, screenWidth, screenHeight int, centerX, centerY float64, m *world.Map, p *entity.Player) (float64, float64, float64, int) {
 	cameraX := (2.0 * float64(x) / float64(screenWidth)) - 1.0
 
 	rayDirX := p.DirX + (p.PlaneX * cameraX)
 	rayDirY := p.DirY + (p.PlaneY * cameraX)
 
-	playerTileX := centerX / float64(TileSize)
-	playerTileY := centerY / float64(TileSize)
+	playerTileX := centerX / float64(world.TileSize)
+	playerTileY := centerY / float64(world.TileSize)
 
 	deltaDistX, stepX := getDeltaDistX(rayDirX)
 	deltaDistY, stepY := getDeltaDistY(rayDirY)
@@ -169,8 +169,8 @@ func CalculateRay(x, screenWidth int, centerX, centerY float64, m *world.Map, p 
 		totalDistance = sideDistY - deltaDistY
 	}
 
-	finalX := centerX + (rayDirX * totalDistance * float64(TileSize))
-	finalY := centerY + (rayDirY * totalDistance * float64(TileSize))
+	finalX := centerX + (rayDirX * totalDistance * float64(world.TileSize))
+	finalY := centerY + (rayDirY * totalDistance * float64(world.TileSize))
 
 	var perpWallDist float64
 	if side == 0 {
@@ -179,7 +179,7 @@ func CalculateRay(x, screenWidth int, centerX, centerY float64, m *world.Map, p 
 		perpWallDist = sideDistY - deltaDistY
 	}
 
-	wallHeight := float64(screenWidth) / perpWallDist
+	wallHeight := float64(screenHeight) / perpWallDist
 
 	return finalX, finalY, wallHeight, side
 }

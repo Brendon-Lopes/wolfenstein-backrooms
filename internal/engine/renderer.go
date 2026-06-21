@@ -11,7 +11,6 @@ import (
 	"github.com/hajimehoshi/ebiten/v2/vector"
 )
 
-const TileSize = 64
 const PlayerSize = 8
 
 func DrawMiniPlayer(screen *ebiten.Image, p *entity.Player, m *world.Map) {
@@ -79,11 +78,12 @@ func Draw3dWorld(screen *ebiten.Image, p *entity.Player, m *world.Map) {
 	centerY := p.Y + (float64(PlayerSize) / 2)
 
 	screenHeight := screen.Bounds().Dy()
-	width := screen.Bounds().Dx() / 2
-	xOffset := width
+	screenWidth := screen.Bounds().Dx()
+	// xOffset := width
 
-	for x := range width {
-		finalX, finalY, wallHeight, side := CalculateRay(x, width, centerX, centerY, m, p)
+	for x := range screenWidth {
+		// finalX, finalY, wallHeight, side := CalculateRay(x, screenWidth, screenHeight, centerX, centerY, m, p)
+		_, _, wallHeight, side := CalculateRay(x, screenWidth, screenHeight, centerX, centerY, m, p)
 
 		drawStart := (screenHeight - int(wallHeight)) / 2
 
@@ -95,19 +95,20 @@ func Draw3dWorld(screen *ebiten.Image, p *entity.Player, m *world.Map) {
 		}
 
 		vector.FillRect(screen,
-			float32(x+xOffset), float32(drawStart),
+			// float32(x+xOffset), float32(drawStart),
+			float32(x), float32(drawStart),
 			1, float32(wallHeight),
 			c,
 			false,
 		)
 
-		vector.StrokeLine(
-			screen,
-			float32(centerX), float32(centerY),
-			float32(finalX), float32(finalY),
-			2,
-			color.RGBA{255, 0, 0, 255},
-			false,
-		)
+		// vector.StrokeLine(
+		// 	screen,
+		// 	float32(centerX), float32(centerY),
+		// 	float32(finalX), float32(finalY),
+		// 	2,
+		// 	color.RGBA{255, 0, 0, 255},
+		// 	false,
+		// )
 	}
 }

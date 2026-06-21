@@ -3,7 +3,6 @@ package main
 import (
 	"image/color"
 	"log"
-	"math"
 	"strconv"
 
 	"github.com/Brendon-Lopes/wolfenstein-backrooms/internal/engine"
@@ -37,8 +36,8 @@ type Game struct {
 
 func (g *Game) Draw(screen *ebiten.Image) {
 	screen.Fill(palette.Gray)
-	engine.DrawMiniMap(screen, g.worldMap)
-	engine.DrawMiniPlayer(screen, g.player, g.worldMap)
+	// engine.DrawMiniMap(screen, g.worldMap)
+	// engine.DrawMiniPlayer(screen, g.player, g.worldMap)
 	engine.Draw3dWorld(screen, g.player, g.worldMap)
 
 	fps := ebiten.ActualFPS()
@@ -59,24 +58,8 @@ func main() {
 	ebiten.SetWindowSize(windowWidth, windowHeight)
 	ebiten.SetWindowTitle("Wolfenrooms")
 
-	// TODO: initialize map somewhere else
-	mapGrid := [...]byte{
-		1, 1, 1, 1, 1, 1, 1, 1,
-		1, 0, 1, 0, 0, 0, 0, 1,
-		1, 0, 1, 0, 0, 0, 0, 1,
-		1, 0, 1, 0, 0, 0, 0, 1,
-		1, 0, 0, 0, 0, 0, 0, 1,
-		1, 0, 0, 0, 0, 1, 0, 1,
-		1, 0, 0, 0, 0, 0, 0, 1,
-		1, 1, 1, 1, 1, 1, 1, 1,
-	}
-
-	// TODO: initialize player somewhere else (maybe object pool for inits)
-	pdx := math.Cos(0) * entity.PlayerSpeed
-	pdy := math.Sin(0) * entity.PlayerSpeed
-
-	p := &entity.Player{X: 200, Y: 200, DeltaX: pdx, DeltaY: pdy, DirX: 1, DirY: 0, PlaneX: 0, PlaneY: 0.66}
-	m := &world.Map{Width: 8, Height: 8, TileSize: engine.TileSize, Grid: mapGrid}
+	p := entity.NewPlayer()
+	m := world.NewMap()
 	g := &Game{p, m}
 
 	if err := ebiten.RunGame(g); err != nil {
