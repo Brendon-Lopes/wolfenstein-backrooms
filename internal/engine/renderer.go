@@ -2,7 +2,6 @@ package engine
 
 import (
 	"image/color"
-	"math"
 
 	"github.com/Brendon-Lopes/wolfenstein-backrooms/internal/entity"
 	"github.com/Brendon-Lopes/wolfenstein-backrooms/internal/world"
@@ -11,41 +10,16 @@ import (
 	"github.com/hajimehoshi/ebiten/v2/vector"
 )
 
-const PlayerSize = 8
+const PlayerSize = 4
 
-func DrawMiniPlayer(screen *ebiten.Image, p *entity.Player, m *world.Map) {
-
-	centerX := p.X + (float64(PlayerSize) / 2)
-	centerY := p.Y + (float64(PlayerSize) / 2)
-	lineLength := 25.0
-
-	// player square
-	vector.FillRect(
-		screen,
-		float32(p.X), float32(p.Y),
-		float32(PlayerSize), float32(PlayerSize),
-		// TODO: not alocate color every render
-		color.RGBA{255, 255, 0, 255}, false,
-	)
-
-	// player direction line
-	vector.StrokeLine(
-		screen,
-		float32(centerX), float32(centerY),
-		float32(centerX+math.Cos(p.Angle)*lineLength), float32(centerY+math.Sin(p.Angle)*lineLength),
-		// TODO: not alocate color every render
-		1, color.RGBA{255, 255, 0, 255}, false,
-	)
-
-}
-
-func DrawMiniMap(screen *ebiten.Image, m *world.Map) {
+func DrawMiniMap(screen *ebiten.Image, p *entity.Player, m *world.Map, scale, offsetX, offsetY float32) {
 	var c color.Color
+	tileSize := float32(m.TileSize) * scale
 
 	for y := range m.Height {
 		for x := range m.Width {
-			xo := x * m.TileSize
-			yo := y * m.TileSize
+			xo := float32(x) * tileSize
+			yo := float32(y) * tileSize
 
 			if m.Grid[y*m.Width+x] == 1 {
 				c = color.White
@@ -56,21 +30,44 @@ func DrawMiniMap(screen *ebiten.Image, m *world.Map) {
 			vector.FillRect(
 				screen,
 				float32(xo), float32(yo),
-				float32(m.TileSize), float32(m.TileSize),
+				float32(tileSize), float32(tileSize),
 				c, false,
 			)
 
 			vector.StrokeRect(
 				screen,
 				float32(xo), float32(yo),
-				float32(m.TileSize), float32(m.TileSize),
-				2,
+				float32(tileSize), float32(tileSize),
+				1,
 				color.RGBA{50, 50, 50, 255},
 				false,
 			)
-
 		}
 	}
+
+	// player square
+	vector.FillRect(
+		screen,
+		float32(p.X*float64(scale)), float32(p.Y*float64(scale)),
+		float32(PlayerSize), float32(PlayerSize),
+		// TODO: not alocate color every render
+		color.RGBA{255, 255, 0, 255}, false,
+	)
+
+	centerX := (p.X*float64(scale) + (float64(PlayerSize) / 2))
+	centerY := (p.Y*float64(scale) + (float64(PlayerSize) / 2))
+	lineLength := 10.0
+
+	// player direction line
+	vector.StrokeLine(
+		screen,
+		float32(centerX), float32(centerY),
+		float32(centerX+p.DirX*lineLength), float32(centerY+p.DirY*lineLength),
+		// TODO: not alocate color every render
+		1,
+		color.RGBA{255, 255, 0, 255},
+		false,
+	)
 }
 
 func Draw3dWorld(screen *ebiten.Image, p *entity.Player, m *world.Map) {
@@ -95,7 +92,6 @@ func Draw3dWorld(screen *ebiten.Image, p *entity.Player, m *world.Map) {
 		}
 
 		vector.FillRect(screen,
-			// float32(x+xOffset), float32(drawStart),
 			float32(x), float32(drawStart),
 			1, float32(wallHeight),
 			c,

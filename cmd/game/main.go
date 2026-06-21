@@ -17,6 +17,10 @@ const (
 	windowWidth  = 1024
 	windowHeight = 512
 	resDivision  = 1
+
+	minimapScale   = 0.25
+	minimapOffsetX = 10
+	minimapOffsetY = 10
 )
 
 // TODO: move palette to own package and initialize once
@@ -36,9 +40,8 @@ type Game struct {
 
 func (g *Game) Draw(screen *ebiten.Image) {
 	screen.Fill(palette.Gray)
-	// engine.DrawMiniMap(screen, g.worldMap)
-	// engine.DrawMiniPlayer(screen, g.player, g.worldMap)
 	engine.Draw3dWorld(screen, g.player, g.worldMap)
+	engine.DrawMiniMap(screen, g.player, g.worldMap, minimapScale, minimapOffsetX, minimapOffsetY)
 
 	fps := ebiten.ActualFPS()
 	ebitenutil.DebugPrintAt(screen, "FPS: "+strconv.FormatFloat(fps, 'f', 0, 64), windowWidth-60, 10)
