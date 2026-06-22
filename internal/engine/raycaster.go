@@ -7,6 +7,14 @@ import (
 	"github.com/Brendon-Lopes/wolfenstein-backrooms/internal/world"
 )
 
+type RayResult struct {
+	X          int
+	FinalX     float64
+	FinalY     float64
+	WallHeight float64
+	Side       int
+}
+
 /*
 [getDeltaDistX] calculates the length of the ray's hypotenuse when it travels exactly one map grid unit along the Y-axis.
 
@@ -182,4 +190,44 @@ func CalculateRay(x, screenWidth, screenHeight int, centerX, centerY float64, m 
 	wallHeight := float64(screenHeight) / perpWallDist
 
 	return finalX, finalY, wallHeight, side
+}
+
+/*
+[CalculateAllRays] casts rays for each vertical stripe of the screen to determine wall intersections and their properties.
+
+Parameters:
+  - step: The interval at which rays are cast (e.g., every 4 pixels).
+  - screenWidth: The width of the screen in pixels.
+  - screenHeight: The height of the screen in pixels.
+  - centerX: The player's X coordinate in pixel space.
+  - centerY: The player's Y coordinate in pixel space.
+  - rays: A slice to store the results of each raycast.
+  - m: Pointer to the world Map containing the grid layout.
+  - p: Pointer to the Player entity containing position and direction information.
+
+Returns:
+  - A slice of [RayResult] containing the properties of each raycast for rendering.
+*/
+func CalculateAllRays(step, screenWidth, screenHeight int, centerX, centerY float64, rays []RayResult, m *world.Map, p *entity.Player) []RayResult {
+	// the slice object/header is copied, but the array is a pointer
+	// set Len to 0
+	rays = rays[:0]
+
+	for x := range screenWidth {
+		if x%step != 0 {
+			continue
+		}
+
+		finalX, finalY, wallHeight, side := CalculateRay(x, screenWidth, screenHeight, centerX, centerY, m, p)
+		// overwrite old values
+		rays = append(rays, RayResult{
+			X:          x,
+			FinalX:     finalX,
+			FinalY:     finalY,
+			WallHeight: wallHeight,
+			Side:       side,
+		})
+	}
+
+	return rays
 }

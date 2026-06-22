@@ -21,6 +21,9 @@ const (
 	minimapScale   = 0.125
 	minimapOffsetX = 10
 	minimapOffsetY = 10
+
+	rayStep   = 4
+	rectWidth = 4
 )
 
 // TODO: move palette to own package and initialize once
@@ -36,12 +39,26 @@ var palette = Palette{
 type Game struct {
 	player   *entity.Player
 	worldMap *world.Map
+	rays     []engine.RayResult
 }
 
 func (g *Game) Draw(screen *ebiten.Image) {
 	screen.Fill(palette.Gray)
-	engine.Draw3dWorld(screen, g.player, g.worldMap)
-	engine.DrawMiniMap(screen, g.player, g.worldMap, minimapScale, minimapOffsetX, minimapOffsetY)
+
+	centerX := g.player.X + (float64(engine.PlayerSize) / 2)
+	centerY := g.player.Y + (float64(engine.PlayerSize) / 2)
+	screenWidth := windowWidth / resDivision
+	screenHeight := windowHeight / resDivision
+
+	g.rays = engine.CalculateAllRays(
+		rayStep,
+		screenWidth, screenHeight,
+		centerX, centerY,
+		g.rays, g.worldMap, g.player,
+	)
+
+	engine.Draw3dWorld(screen, g.rays, rectWidth)
+	engine.DrawMiniMap(screen, g.player, g.worldMap, g.rays, minimapScale, minimapOffsetX, minimapOffsetY)
 
 	fps := ebiten.ActualFPS()
 	ebitenutil.DebugPrintAt(screen, "FPS: "+strconv.FormatFloat(fps, 'f', 0, 64), windowWidth-60, 10)
@@ -63,7 +80,11 @@ func main() {
 
 	p := entity.NewPlayer()
 	m := world.NewMap()
-	g := &Game{p, m}
+	g := &Game{
+		player:   p,
+		worldMap: m,
+		rays:     make([]engine.RayResult, 0, (windowWidth/resDivision)/rayStep+1),
+	}
 
 	if err := ebiten.RunGame(g); err != nil {
 		log.Fatal(err)
