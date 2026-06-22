@@ -4,6 +4,7 @@ import (
 	"math"
 
 	"github.com/Brendon-Lopes/wolfenstein-backrooms/internal/input"
+	"github.com/Brendon-Lopes/wolfenstein-backrooms/internal/world"
 )
 
 type Player struct {
@@ -23,22 +24,62 @@ func NewPlayer() *Player {
 }
 
 /*
-[Move] moves the player in a given direction (dir).
+[move] moves the player in a given direction (dir).
 Dir is 1 for forward and -1 for backward.
 */
-func Move(p *Player, dir float64) {
-	p.X += p.DeltaX * dir
-	p.Y += p.DeltaY * dir
+func move(p *Player, dir float64, m *world.Map) {
+	moveX := 0.0
+	moveY := 0.0
+
+	// final player coordinates
+	moveX += p.DeltaX * dir
+	moveY += p.DeltaY * dir
+
+	safetyMargin := 20.0
+
+	bufferX := 0.0
+	bufferY := 0.0
+
+	if moveX > 0 {
+		bufferX = safetyMargin
+	} else if moveX < 0 {
+		bufferX = -safetyMargin
+	}
+
+	if moveY > 0 {
+		bufferY = safetyMargin
+	} else if moveY < 0 {
+		bufferY = -safetyMargin
+	}
+
+	futureX := p.X + moveX + bufferX
+
+	gridX := int(futureX / world.TileSize)
+	currentGridY := int(p.Y / world.TileSize)
+
+	if m.Grid[currentGridY*m.Width+gridX] == 0 {
+		p.X += moveX
+	}
+
+	futureY := p.Y + moveY + bufferY
+
+	currentGridX := int(p.X / world.TileSize)
+	gridY := int(futureY / world.TileSize)
+
+	if m.Grid[gridY*m.Width+currentGridX] == 0 {
+		p.Y += moveY
+	}
+
 }
 
 /*
-[Rotate] rotates the player by a given direction (dir).
+[rotate] rotates the player by a given direction (dir).
 The direction is 1 or -1.
 The player's angle is updated based on the AngleStep constant,
 and the DeltaX and DeltaY values are recalculated based on the new angle.
 The angle is kept within the range of 0 to 2π radians.
 */
-func Rotate(p *Player, dir float64) {
+func rotate(p *Player, dir float64) {
 	p.Angle += AngleStep * dir
 
 	if p.Angle < 0 {
@@ -58,20 +99,20 @@ func Rotate(p *Player, dir float64) {
 	p.DeltaY = p.DirY * PlayerSpeed
 }
 
-func UpdatePlayer(p *Player, cmd input.Command) {
+func UpdatePlayer(p *Player, cmd input.Command, m *world.Map) {
 	const positive float64 = 1
 	const negative float64 = -1
 
 	if cmd.TurnLeft {
-		Rotate(p, negative)
+		rotate(p, negative)
 	}
 	if cmd.TurnRight {
-		Rotate(p, positive)
+		rotate(p, positive)
 	}
 	if cmd.MoveForward {
-		Move(p, positive)
+		move(p, positive, m)
 	}
 	if cmd.MoveBackward {
-		Move(p, negative)
+		move(p, negative, m)
 	}
 }

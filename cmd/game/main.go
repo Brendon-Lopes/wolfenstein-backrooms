@@ -66,7 +66,7 @@ func (g *Game) Draw(screen *ebiten.Image) {
 
 func (g *Game) Update() error {
 	cmd := input.ReadInput()
-	entity.UpdatePlayer(g.player, cmd)
+	entity.UpdatePlayer(g.player, cmd, g.worldMap)
 	return nil
 }
 
