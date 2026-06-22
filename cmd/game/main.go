@@ -5,6 +5,7 @@ import (
 	"log"
 	"strconv"
 
+	"github.com/Brendon-Lopes/wolfenstein-backrooms/internal/assets"
 	"github.com/Brendon-Lopes/wolfenstein-backrooms/internal/engine"
 	"github.com/Brendon-Lopes/wolfenstein-backrooms/internal/entity"
 	"github.com/Brendon-Lopes/wolfenstein-backrooms/internal/input"
@@ -39,6 +40,7 @@ var palette = Palette{
 type Game struct {
 	player   *entity.Player
 	worldMap *world.Map
+	textures map[byte]*ebiten.Image
 	rays     []engine.RayResult
 }
 
@@ -58,7 +60,7 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	)
 
 	engine.Draw3dWorld(screen, g.rays, rectWidth)
-	engine.DrawMiniMap(screen, g.player, g.worldMap, g.rays, minimapScale, minimapOffsetX, minimapOffsetY)
+	// engine.DrawMiniMap(screen, g.player, g.worldMap, g.rays, minimapScale, minimapOffsetX, minimapOffsetY)
 
 	fps := ebiten.ActualFPS()
 	ebitenutil.DebugPrintAt(screen, "FPS: "+strconv.FormatFloat(fps, 'f', 0, 64), windowWidth-60, 10)
@@ -78,11 +80,16 @@ func main() {
 	ebiten.SetWindowSize(windowWidth, windowHeight)
 	ebiten.SetWindowTitle("Wolfenrooms")
 
+	t, err := assets.LoadTextures()
+	if err != nil {
+		log.Fatal(err)
+	}
 	p := entity.NewPlayer()
 	m := world.NewMap()
 	g := &Game{
 		player:   p,
 		worldMap: m,
+		textures: t,
 		rays:     make([]engine.RayResult, 0, (windowWidth/resDivision)/rayStep+1),
 	}
 
