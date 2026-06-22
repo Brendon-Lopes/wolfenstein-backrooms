@@ -25,15 +25,20 @@ func NewPlayer() *Player {
 
 /*
 [move] moves the player in a given direction (dir).
-Dir is 1 for forward and -1 for backward.
+Dir is 1 for forward or right and -1 for backward or left.
 */
-func move(p *Player, dir float64, m *world.Map) {
+func move(p *Player, strafe bool, dir float64, m *world.Map) {
 	moveX := 0.0
 	moveY := 0.0
 
 	// final player coordinates
-	moveX += p.DeltaX * dir
-	moveY += p.DeltaY * dir
+	if strafe == true {
+		moveX += p.DeltaY * -dir
+		moveY += p.DeltaX * dir
+	} else {
+		moveX += p.DeltaX * dir
+		moveY += p.DeltaY * dir
+	}
 
 	safetyMargin := 20.0
 
@@ -69,7 +74,6 @@ func move(p *Player, dir float64, m *world.Map) {
 	if m.Grid[gridY*m.Width+currentGridX] == 0 {
 		p.Y += moveY
 	}
-
 }
 
 /*
@@ -103,16 +107,22 @@ func UpdatePlayer(p *Player, cmd input.Command, m *world.Map) {
 	const positive float64 = 1
 	const negative float64 = -1
 
-	if cmd.TurnLeft {
-		rotate(p, negative)
-	}
 	if cmd.TurnRight {
 		rotate(p, positive)
 	}
+	if cmd.TurnLeft {
+		rotate(p, negative)
+	}
 	if cmd.MoveForward {
-		move(p, positive, m)
+		move(p, false, positive, m)
 	}
 	if cmd.MoveBackward {
-		move(p, negative, m)
+		move(p, false, negative, m)
+	}
+	if cmd.StrafeRight {
+		move(p, true, positive, m)
+	}
+	if cmd.StrafeLeft {
+		move(p, true, negative, m)
 	}
 }
