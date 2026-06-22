@@ -8,7 +8,7 @@ import (
 )
 
 type Player struct {
-	X, Y, DeltaX, DeltaY, DirX, DirY, PlaneX, PlaneY, Angle float64
+	X, Y, DirX, DirY, PlaneX, PlaneY, Angle float64
 }
 
 const PlayerSpeed float64 = 2
@@ -17,31 +17,28 @@ const AngleStep = 0.04
 func NewPlayer() *Player {
 	return &Player{
 		X: 200, Y: 200,
-		DeltaX: math.Cos(0) * PlayerSpeed, DeltaY: math.Sin(0) * PlayerSpeed,
 		DirX: 1, DirY: 0,
 		PlaneX: 0, PlaneY: 0.66,
 	}
 }
 
 /*
-[move] moves the player in a given direction (dir).
-Dir is 1 for forward or right and -1 for backward or left.
+[move] moves the player in a given direction.
 */
-func move(p *Player, strafe bool, dir float64, m *world.Map) {
+func move(p *Player, moveDirX, moveDirY float64, m *world.Map) {
+	length := math.Hypot(moveDirX, moveDirY)
+
 	moveX := 0.0
 	moveY := 0.0
 
-	// final player coordinates
-	if strafe == true {
-		moveX += p.DeltaY * -dir
-		moveY += p.DeltaX * dir
+	if length != 0 {
+		moveX = (moveDirX / length) * PlayerSpeed
+		moveY = (moveDirY / length) * PlayerSpeed
 	} else {
-		moveX += p.DeltaX * dir
-		moveY += p.DeltaY * dir
+		return
 	}
 
 	safetyMargin := 20.0
-
 	bufferX := 0.0
 	bufferY := 0.0
 
@@ -80,7 +77,7 @@ func move(p *Player, strafe bool, dir float64, m *world.Map) {
 [rotate] rotates the player by a given direction (dir).
 The direction is 1 or -1.
 The player's angle is updated based on the AngleStep constant,
-and the DeltaX and DeltaY values are recalculated based on the new angle.
+and the DirX and DirY values are recalculated based on the new angle.
 The angle is kept within the range of 0 to 2π radians.
 */
 func rotate(p *Player, dir float64) {
@@ -98,9 +95,6 @@ func rotate(p *Player, dir float64) {
 	// TODO: centralize FOV somewhere else
 	p.PlaneX = -p.DirY * 0.66
 	p.PlaneY = p.DirX * 0.66
-
-	p.DeltaX = p.DirX * PlayerSpeed
-	p.DeltaY = p.DirY * PlayerSpeed
 }
 
 func UpdatePlayer(p *Player, cmd input.Command, m *world.Map) {
@@ -113,16 +107,28 @@ func UpdatePlayer(p *Player, cmd input.Command, m *world.Map) {
 	if cmd.TurnLeft {
 		rotate(p, negative)
 	}
+
+	intentX := 0.0
+	intentY := 0.0
+
 	if cmd.MoveForward {
-		move(p, false, positive, m)
+		intentX += p.DirX
+		intentY += p.DirY
 	}
 	if cmd.MoveBackward {
-		move(p, false, negative, m)
+		intentX -= p.DirX
+		intentY -= p.DirY
 	}
 	if cmd.StrafeRight {
-		move(p, true, positive, m)
+		intentX -= p.DirY
+		intentY += p.DirX
 	}
 	if cmd.StrafeLeft {
-		move(p, true, negative, m)
+		intentX += p.DirY
+		intentY -= p.DirX
+	}
+
+	if intentX != 0 || intentY != 0 {
+		move(p, intentX, intentY, m)
 	}
 }
