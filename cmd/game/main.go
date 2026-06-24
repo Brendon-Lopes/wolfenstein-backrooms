@@ -17,7 +17,7 @@ import (
 const (
 	windowWidth  = 1280
 	windowHeight = 720
-	resDivision  = 1
+	resDivision  = 3
 
 	minimapScale   = 0.125
 	minimapOffsetX = 10
@@ -56,7 +56,7 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	)
 
 	engine.Draw3dWorld(screen, g.rays, g.textures)
-	engine.DrawMiniMap(screen, g.player, g.worldMap, g.rays, minimapScale, minimapOffsetX, minimapOffsetY)
+	// engine.DrawMiniMap(screen, g.player, g.worldMap, g.rays, minimapScale, minimapOffsetX, minimapOffsetY)
 
 	fps := ebiten.ActualFPS()
 	ebitenutil.DebugPrintAt(screen, "FPS: "+strconv.FormatFloat(fps, 'f', 0, 64), screenWidth-60, 10)

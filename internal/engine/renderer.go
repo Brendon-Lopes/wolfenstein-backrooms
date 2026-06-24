@@ -91,7 +91,7 @@ func Draw3dWorld(screen *ebiten.Image, rays []RayResult, textures map[byte]*ebit
 	screenHeight := screen.Bounds().Dy()
 
 	for _, ray := range rays {
-		drawStart := (screenHeight - int(ray.WallHeight)) / 2
+		drawStart := (float64(screenHeight) - ray.WallHeight) / 2
 
 		tex := textures[ray.TileType]
 		texHeight := tex.Bounds().Dy()
@@ -108,7 +108,8 @@ func Draw3dWorld(screen *ebiten.Image, rays []RayResult, textures map[byte]*ebit
 		var maxDarkDist float32 = 12.0  // max
 		var dist float32 = float32(ray.PerpWallDist)
 
-		// lerp -> (max - x) / (max - min)
+		// lerp    -> (x - min) / (max - min) -> 0..1
+		// inverse -> (max - x) / (max - min) -> 1..0
 		mult := (maxDarkDist - dist) / (maxDarkDist - fullLightDist)
 
 		if dist <= fullLightDist {
