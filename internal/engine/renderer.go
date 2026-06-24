@@ -22,7 +22,7 @@ func DrawMiniMap(screen *ebiten.Image, p *entity.Player, m *world.Map, rays []Ra
 			xOffset := float32(x)*blockSize + minimapOffsetX
 			yOffset := float32(y)*blockSize + minimapOffsetY
 
-			if m.Grid[y*m.Width+x] == 1 {
+			if m.Grid[y*m.Width+x] >= 1 {
 				c = color.White
 			} else {
 				c = color.Black
@@ -105,7 +105,7 @@ func Draw3dWorld(screen *ebiten.Image, rays []RayResult, textures map[byte]*ebit
 		op.GeoM.Translate(float64(ray.X), float64(drawStart))
 
 		var fullLightDist float32 = 2.0 // min
-		var maxDarkDist float32 = 8.0   // max
+		var maxDarkDist float32 = 12.0  // max
 		var dist float32 = float32(ray.PerpWallDist)
 
 		// lerp -> (max - x) / (max - min)
