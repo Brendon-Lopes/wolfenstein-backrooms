@@ -1,6 +1,7 @@
 package engine
 
 import (
+	"image"
 	"image/color"
 
 	"github.com/Brendon-Lopes/wolfenstein-backrooms/internal/entity"
@@ -50,14 +51,7 @@ func DrawMiniMap(screen *ebiten.Image, p *entity.Player, m *world.Map, rays []Ra
 	centerY := (p.Y*float64(scale) + (float64(PlayerSize) / 2)) + float64(minimapOffsetY)
 	lineLength := 6.0
 
-	screenWidth := screen.Bounds().Dx()
-	batchSize := screenWidth / 20
-
 	for _, ray := range rays {
-		if ray.X%batchSize != 0 {
-			continue
-		}
-
 		finalX := ray.FinalX*float64(scale) + float64(minimapOffsetX)
 		finalY := ray.FinalY*float64(scale) + float64(minimapOffsetY)
 
@@ -93,24 +87,41 @@ func DrawMiniMap(screen *ebiten.Image, p *entity.Player, m *world.Map, rays []Ra
 	)
 }
 
-func Draw3dWorld(screen *ebiten.Image, rays []RayResult, rectWidth int) {
+func Draw3dWorld(screen *ebiten.Image, rays []RayResult, textures map[byte]*ebiten.Image) {
 	screenHeight := screen.Bounds().Dy()
 
 	for _, ray := range rays {
 		drawStart := (screenHeight - int(ray.WallHeight)) / 2
 
-		var c color.Color
+		tex := textures[ray.TileType]
+		texHeight := tex.Bounds().Dy()
+
+		cut := image.Rect(ray.TextureX, 0, ray.TextureX+1, texHeight)
+		column := tex.SubImage(cut).(*ebiten.Image)
+		scaleY := float64(ray.WallHeight) / float64(texHeight)
+
+		op := &ebiten.DrawImageOptions{}
+		op.GeoM.Scale(1, scaleY)
+		op.GeoM.Translate(float64(ray.X), float64(drawStart))
+
 		if ray.Side == 0 {
-			c = color.RGBA{180, 180, 180, 255}
-		} else {
-			c = color.RGBA{120, 120, 120, 255}
+			op.ColorScale.Scale(0.5, 0.5, 0.5, 1)
 		}
 
-		vector.FillRect(screen,
-			float32(ray.X), float32(drawStart),
-			float32(rectWidth), float32(ray.WallHeight),
-			c,
-			false,
-		)
+		screen.DrawImage(column, op)
+
+		// var c color.Color
+		// if ray.Side == 0 {
+		// 	c = color.RGBA{180, 180, 180, 255}
+		// } else {
+		// 	c = color.RGBA{120, 120, 120, 255}
+		// }
+
+		// vector.FillRect(screen,
+		// 	float32(ray.X), float32(drawStart),
+		// 	1, float32(ray.WallHeight),
+		// 	c,
+		// 	false,
+		// )
 	}
 }

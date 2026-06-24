@@ -17,14 +17,11 @@ import (
 const (
 	windowWidth  = 1280
 	windowHeight = 720
-	resDivision  = 2
+	resDivision  = 1
 
 	minimapScale   = 0.125
 	minimapOffsetX = 10
 	minimapOffsetY = 10
-
-	rayStep   = 4
-	rectWidth = 4
 )
 
 // TODO: move palette to own package and initialize once
@@ -53,17 +50,16 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	screenHeight := windowHeight / resDivision
 
 	g.rays = engine.CalculateAllRays(
-		rayStep,
 		screenWidth, screenHeight,
 		centerX, centerY,
 		g.rays, g.worldMap, g.player,
 	)
 
-	engine.Draw3dWorld(screen, g.rays, rectWidth)
-	// engine.DrawMiniMap(screen, g.player, g.worldMap, g.rays, minimapScale, minimapOffsetX, minimapOffsetY)
+	engine.Draw3dWorld(screen, g.rays, g.textures)
+	engine.DrawMiniMap(screen, g.player, g.worldMap, g.rays, minimapScale, minimapOffsetX, minimapOffsetY)
 
 	fps := ebiten.ActualFPS()
-	ebitenutil.DebugPrintAt(screen, "FPS: "+strconv.FormatFloat(fps, 'f', 0, 64), windowWidth-60, 10)
+	ebitenutil.DebugPrintAt(screen, "FPS: "+strconv.FormatFloat(fps, 'f', 0, 64), screenWidth-60, 10)
 }
 
 func (g *Game) Update() error {
@@ -90,7 +86,7 @@ func main() {
 		player:   p,
 		worldMap: m,
 		textures: t,
-		rays:     make([]engine.RayResult, 0, (windowWidth/resDivision)/rayStep+1),
+		rays:     make([]engine.RayResult, 0, (windowWidth/resDivision)+1),
 	}
 
 	if err := ebiten.RunGame(g); err != nil {

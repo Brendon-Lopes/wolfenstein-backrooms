@@ -8,11 +8,14 @@ import (
 )
 
 type RayResult struct {
-	X          int
-	FinalX     float64
-	FinalY     float64
-	WallHeight float64
-	Side       int
+	X            int
+	FinalX       float64
+	FinalY       float64
+	WallHeight   float64
+	Side         int
+	PerpWallDist float64
+	TextureX     int
+	TileType     byte
 }
 
 /*
@@ -130,7 +133,7 @@ Returns:
   - finalX: The X coordinate where the ray hits a wall (in pixel space).
   - finalY: The Y coordinate where the ray hits a wall (in pixel space).
 */
-func CalculateRay(x, screenWidth, screenHeight int, centerX, centerY float64, m *world.Map, p *entity.Player) (float64, float64, float64, int) {
+func CalculateRay(x, screenWidth, screenHeight int, centerX, centerY float64, m *world.Map, p *entity.Player) (float64, float64, float64, int, float64, byte, int) {
 	cameraX := (2.0 * float64(x) / float64(screenWidth)) - 1.0
 
 	rayDirX := p.DirX + (p.PlaneX * cameraX)
@@ -148,6 +151,8 @@ func CalculateRay(x, screenWidth, screenHeight int, centerX, centerY float64, m 
 	hit := false
 	side := 0 // 0 = hit X, 1 = hit Y
 
+	var tileType byte
+
 	for !hit {
 		if sideDistX < sideDistY {
 			sideDistX += deltaDistX
@@ -161,11 +166,13 @@ func CalculateRay(x, screenWidth, screenHeight int, centerX, centerY float64, m 
 
 		if mapX >= 0 && mapX < m.Width && mapY >= 0 && mapY < m.Height {
 			mapIndex := (mapY * m.Width) + mapX
-			if m.Grid[mapIndex] == 1 {
+			if m.Grid[mapIndex] > 0 {
+				tileType = m.Grid[mapIndex]
 				hit = true
 			}
 		} else {
 			// out of bounds
+			tileType = 1
 			hit = true
 		}
 	}
@@ -187,9 +194,32 @@ func CalculateRay(x, screenWidth, screenHeight int, centerX, centerY float64, m 
 		perpWallDist = sideDistY - deltaDistY
 	}
 
-	wallHeight := float64(screenHeight) / perpWallDist
+	var wallX float64
+	if side == 0 {
+		// vertical walls |
+		wallX = playerTileY + perpWallDist*rayDirY
+	} else {
+		// horizontal walls --
+		wallX = playerTileX + perpWallDist*rayDirX
+	}
+	// get the fractional part of wall (eg.: 14.73 - 14 = 0.73 -> 73%)
+	wallX -= math.Floor(wallX)
 
-	return finalX, finalY, wallHeight, side
+	// 64px
+	textureWidth := world.TileSize
+	textureX := int(wallX * float64(textureWidth)) // eg. 0.73 * 64 = 46.72 -> 46th pixel
+
+	// if the wall is facing left or up, flip the texture coordinate
+	if side == 0 && rayDirX > 0 {
+		textureX = textureWidth - textureX - 1
+	}
+	if side == 1 && rayDirY < 0 {
+		textureX = textureWidth - textureX - 1
+	}
+
+	wallHeight := (float64(screenHeight) / perpWallDist) * 1.25
+
+	return finalX, finalY, wallHeight, side, perpWallDist, tileType, textureX
 }
 
 /*
@@ -208,24 +238,23 @@ Parameters:
 Returns:
   - A slice of [RayResult] containing the properties of each raycast for rendering.
 */
-func CalculateAllRays(step, screenWidth, screenHeight int, centerX, centerY float64, rays []RayResult, m *world.Map, p *entity.Player) []RayResult {
+func CalculateAllRays(screenWidth, screenHeight int, centerX, centerY float64, rays []RayResult, m *world.Map, p *entity.Player) []RayResult {
 	// the slice object/header is copied, but the array is a pointer
 	// set Len to 0
 	rays = rays[:0]
 
 	for x := range screenWidth {
-		if x%step != 0 {
-			continue
-		}
-
-		finalX, finalY, wallHeight, side := CalculateRay(x, screenWidth, screenHeight, centerX, centerY, m, p)
+		finalX, finalY, wallHeight, side, perpWallDist, tileType, textureX := CalculateRay(x, screenWidth, screenHeight, centerX, centerY, m, p)
 		// overwrite old values
 		rays = append(rays, RayResult{
-			X:          x,
-			FinalX:     finalX,
-			FinalY:     finalY,
-			WallHeight: wallHeight,
-			Side:       side,
+			X:            x,
+			FinalX:       finalX,
+			FinalY:       finalY,
+			WallHeight:   wallHeight,
+			Side:         side,
+			PerpWallDist: perpWallDist,
+			TextureX:     textureX,
+			TileType:     tileType,
 		})
 	}
 

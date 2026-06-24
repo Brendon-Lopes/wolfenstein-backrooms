@@ -25,7 +25,7 @@ func LoadTextures() (map[byte]*ebiten.Image, error) {
 	for tileType, path := range files {
 		img, _, err := ebitenutil.NewImageFromFileSystem(texturesFS, path)
 		if err != nil {
-			return nil, fmt.Errorf("decodificando %s: %w", path, err)
+			return nil, fmt.Errorf("decoding %s: %w", path, err)
 		}
 		textures[tileType] = img
 	}
