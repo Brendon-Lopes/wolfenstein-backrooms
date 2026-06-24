@@ -104,24 +104,26 @@ func Draw3dWorld(screen *ebiten.Image, rays []RayResult, textures map[byte]*ebit
 		op.GeoM.Scale(1, scaleY)
 		op.GeoM.Translate(float64(ray.X), float64(drawStart))
 
+		var fullLightDist float32 = 2.0 // min
+		var maxDarkDist float32 = 8.0   // max
+		var dist float32 = float32(ray.PerpWallDist)
+
+		// lerp -> (max - x) / (max - min)
+		mult := (maxDarkDist - dist) / (maxDarkDist - fullLightDist)
+
+		if dist <= fullLightDist {
+			mult = 1
+		}
+		if dist >= maxDarkDist {
+			mult = 0
+		}
+
+		op.ColorScale.Scale(mult, mult, mult, 1)
+
 		if ray.Side == 0 {
-			op.ColorScale.Scale(0.5, 0.5, 0.5, 1)
+			op.ColorScale.Scale(0.7, 0.7, 0.7, 1)
 		}
 
 		screen.DrawImage(column, op)
-
-		// var c color.Color
-		// if ray.Side == 0 {
-		// 	c = color.RGBA{180, 180, 180, 255}
-		// } else {
-		// 	c = color.RGBA{120, 120, 120, 255}
-		// }
-
-		// vector.FillRect(screen,
-		// 	float32(ray.X), float32(drawStart),
-		// 	1, float32(ray.WallHeight),
-		// 	c,
-		// 	false,
-		// )
 	}
 }
