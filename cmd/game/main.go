@@ -17,7 +17,7 @@ import (
 const (
 	windowWidth  = 1280
 	windowHeight = 720
-	resDivision  = 3
+	resDivision  = 2
 
 	minimapScale   = 0.125
 	minimapOffsetX = 10

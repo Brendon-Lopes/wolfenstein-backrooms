@@ -12,6 +12,7 @@ import (
 )
 
 const PlayerSize = 2
+const HeightMultiplier = 1.25
 
 func DrawMiniMap(screen *ebiten.Image, p *entity.Player, m *world.Map, rays []RayResult, scale, minimapOffsetX, minimapOffsetY float32) {
 	var c color.Color
@@ -138,7 +139,7 @@ func DrawFloor(screen *ebiten.Image, screenWidth, screenHeight int, p *entity.Pl
 
 		ps := y - screenHeight/2
 
-		posZ := 0.5 * float64(screenHeight) * 1.25
+		posZ := 0.5 * float64(screenHeight) * HeightMultiplier
 
 		rowDistance := posZ / float64(ps)
 
@@ -147,6 +148,17 @@ func DrawFloor(screen *ebiten.Image, screenWidth, screenHeight int, p *entity.Pl
 
 		floorX := (p.X / float64(world.TileSize)) + rowDistance*rayDirX0
 		floorY := (p.Y / float64(world.TileSize)) + rowDistance*rayDirY0
+
+		var fullLightDist float64 = 2.0
+		var maxDarkDist float64 = 12.0
+
+		mult := (maxDarkDist - rowDistance) / (maxDarkDist - fullLightDist)
+		if rowDistance <= fullLightDist {
+			mult = 1
+		}
+		if rowDistance >= maxDarkDist {
+			mult = 0
+		}
 
 		for x := range screenWidth {
 			cellX := int(floorX)
@@ -167,8 +179,24 @@ func DrawFloor(screen *ebiten.Image, screenWidth, screenHeight int, p *entity.Pl
 			floorColor := floorTex.At(tx, ty)
 			ceilingColor := ceilingTex.At(tx, ty)
 
-			screen.Set(x, y, floorColor)
-			screen.Set(x, screenHeight-y-1, ceilingColor)
+			rF, gF, bF, aF := floorColor.RGBA()
+			shadedFloor := color.RGBA{
+				R: uint8(float64(rF>>8) * mult),
+				G: uint8(float64(gF>>8) * mult),
+				B: uint8(float64(bF>>8) * mult),
+				A: uint8(aF >> 8),
+			}
+
+			rC, gC, bC, aC := ceilingColor.RGBA()
+			shadedCeiling := color.RGBA{
+				R: uint8(float64(rC>>8) * mult),
+				G: uint8(float64(gC>>8) * mult),
+				B: uint8(float64(bC>>8) * mult),
+				A: uint8(aC >> 8),
+			}
+
+			screen.Set(x, y, shadedFloor)
+			screen.Set(x, screenHeight-y-1, shadedCeiling)
 		}
 	}
 }
