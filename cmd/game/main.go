@@ -55,6 +55,7 @@ func (g *Game) Draw(screen *ebiten.Image) {
 		g.rays, g.worldMap, g.player,
 	)
 
+	engine.DrawFloor(screen, screenWidth, screenHeight, g.player, g.textures)
 	engine.Draw3dWorld(screen, g.rays, g.textures)
 	// engine.DrawMiniMap(screen, g.player, g.worldMap, g.rays, minimapScale, minimapOffsetX, minimapOffsetY)
 

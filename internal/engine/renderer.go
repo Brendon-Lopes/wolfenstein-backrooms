@@ -128,3 +128,47 @@ func Draw3dWorld(screen *ebiten.Image, rays []RayResult, textures map[byte]*ebit
 		screen.DrawImage(column, op)
 	}
 }
+
+func DrawFloor(screen *ebiten.Image, screenWidth, screenHeight int, p *entity.Player, textures map[byte]*ebiten.Image) {
+	for y := screenHeight/2 + 1; y < screenHeight; y++ {
+		rayDirX0 := p.DirX - p.PlaneX
+		rayDirY0 := p.DirY - p.PlaneY
+		rayDirX1 := p.DirX + p.PlaneX
+		rayDirY1 := p.DirY + p.PlaneY
+
+		ps := y - screenHeight/2
+
+		posZ := 0.5 * float64(screenHeight) * 1.25
+
+		rowDistance := posZ / float64(ps)
+
+		floorStepX := rowDistance * (rayDirX1 - rayDirX0) / float64(screenWidth)
+		floorStepY := rowDistance * (rayDirY1 - rayDirY0) / float64(screenWidth)
+
+		floorX := (p.X / float64(world.TileSize)) + rowDistance*rayDirX0
+		floorY := (p.Y / float64(world.TileSize)) + rowDistance*rayDirY0
+
+		for x := range screenWidth {
+			cellX := int(floorX)
+			cellY := int(floorY)
+
+			tx := int(float64(world.TileSize)*(floorX-float64(cellX))) & (world.TileSize - 1)
+			ty := int(float64(world.TileSize)*(floorY-float64(cellY))) & (world.TileSize - 1)
+
+			floorX += floorStepX
+			floorY += floorStepY
+
+			floorTexture := 3
+			ceilingTexture := 1
+
+			floorTex := textures[byte(floorTexture)]
+			ceilingTex := textures[byte(ceilingTexture)]
+
+			floorColor := floorTex.At(tx, ty)
+			ceilingColor := ceilingTex.At(tx, ty)
+
+			screen.Set(x, y, floorColor)
+			screen.Set(x, screenHeight-y-1, ceilingColor)
+		}
+	}
+}
