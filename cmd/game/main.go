@@ -1,6 +1,7 @@
 package main
 
 import (
+	"image"
 	"image/color"
 	"log"
 	"strconv"
@@ -15,9 +16,9 @@ import (
 )
 
 const (
-	windowWidth  = 1280
-	windowHeight = 720
-	resDivision  = 2
+	windowWidth  = 1920
+	windowHeight = 1080
+	resDivision  = 3
 
 	minimapScale   = 0.125
 	minimapOffsetX = 10
@@ -35,28 +36,35 @@ var palette = Palette{
 }
 
 type Game struct {
-	player   *entity.Player
-	worldMap *world.Map
-	textures map[byte]*ebiten.Image
-	rays     []engine.RayResult
+	player      *entity.Player
+	worldMap    *world.Map
+	textures    map[byte]*image.RGBA
+	rays        []engine.RayResult
+	pixelBuffer []byte
 }
 
 func (g *Game) Draw(screen *ebiten.Image) {
-	screen.Fill(palette.Gray)
+	// Clear the buffer
+	for i := 0; i < len(g.pixelBuffer); i += 4 {
+		g.pixelBuffer[i] = palette.Gray.R
+		g.pixelBuffer[i+1] = palette.Gray.G
+		g.pixelBuffer[i+2] = palette.Gray.B
+		g.pixelBuffer[i+3] = 255
+	}
 
-	centerX := g.player.X + (float64(engine.PlayerSize) / 2)
-	centerY := g.player.Y + (float64(engine.PlayerSize) / 2)
 	screenWidth := windowWidth / resDivision
 	screenHeight := windowHeight / resDivision
 
 	g.rays = engine.CalculateAllRays(
 		screenWidth, screenHeight,
-		centerX, centerY,
+		g.player.X+(float64(engine.PlayerSize)/2), g.player.Y+(float64(engine.PlayerSize)/2),
 		g.rays, g.worldMap, g.player,
 	)
 
-	engine.DrawFloor(screen, screenWidth, screenHeight, g.player, g.textures)
-	engine.Draw3dWorld(screen, g.rays, g.textures)
+	engine.DrawFloor(g.pixelBuffer, screenWidth, screenHeight, g.player, g.textures)
+	engine.Draw3dWorld(g.pixelBuffer, screenWidth, screenHeight, g.rays, g.textures)
+
+	screen.WritePixels(g.pixelBuffer)
 	// engine.DrawMiniMap(screen, g.player, g.worldMap, g.rays, minimapScale, minimapOffsetX, minimapOffsetY)
 
 	fps := ebiten.ActualFPS()
@@ -84,10 +92,11 @@ func main() {
 	p := entity.NewPlayer()
 	m := world.NewMap()
 	g := &Game{
-		player:   p,
-		worldMap: m,
-		textures: t,
-		rays:     make([]engine.RayResult, 0, (windowWidth/resDivision)+1),
+		player:      p,
+		worldMap:    m,
+		textures:    t,
+		rays:        make([]engine.RayResult, 0, (windowWidth/resDivision)+1),
+		pixelBuffer: make([]byte, (windowWidth/resDivision)*(windowHeight/resDivision)*4),
 	}
 
 	if err := ebiten.RunGame(g); err != nil {

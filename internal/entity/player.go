@@ -11,7 +11,7 @@ type Player struct {
 	X, Y, DirX, DirY, PlaneX, PlaneY, Angle float64
 }
 
-const PlayerSpeed float64 = 2
+const PlayerSpeed float64 = 4
 const AngleStep = 0.04
 
 func NewPlayer() *Player {

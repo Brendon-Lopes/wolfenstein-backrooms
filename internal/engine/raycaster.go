@@ -217,7 +217,7 @@ func CalculateRay(x, screenWidth, screenHeight int, centerX, centerY float64, m 
 		textureX = textureWidth - textureX - 1
 	}
 
-	wallHeight := (float64(screenHeight) / perpWallDist) * 1.25
+	wallHeight := (float64(screenHeight) / perpWallDist) * HeightMultiplier
 
 	return finalX, finalY, wallHeight, side, perpWallDist, tileType, textureX
 }

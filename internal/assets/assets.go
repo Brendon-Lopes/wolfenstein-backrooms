@@ -3,16 +3,15 @@ package assets
 import (
 	"embed"
 	"fmt"
+	"image"
+	"image/draw"
 	_ "image/png"
-
-	"github.com/hajimehoshi/ebiten/v2"
-	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
 )
 
 //go:embed textures/*
 var texturesFS embed.FS
 
-func LoadTextures() (map[byte]*ebiten.Image, error) {
+func LoadTextures() (map[byte]*image.RGBA, error) {
 	files := map[byte]string{
 		1: "textures/redbrick.png",
 		2: "textures/eagle.png",
@@ -20,14 +19,23 @@ func LoadTextures() (map[byte]*ebiten.Image, error) {
 		4: "textures/bluestone.png",
 	}
 
-	textures := make(map[byte]*ebiten.Image, len(files))
+	textures := make(map[byte]*image.RGBA, len(files))
 
 	for tileType, path := range files {
-		img, _, err := ebitenutil.NewImageFromFileSystem(texturesFS, path)
+		file, err := texturesFS.Open(path)
+		if err != nil {
+			return nil, fmt.Errorf("opening %s: %w", path, err)
+		}
+		img, _, err := image.Decode(file)
+		file.Close()
 		if err != nil {
 			return nil, fmt.Errorf("decoding %s: %w", path, err)
 		}
-		textures[tileType] = img
+
+		rgba := image.NewRGBA(img.Bounds())
+		draw.Draw(rgba, rgba.Bounds(), img, img.Bounds().Min, draw.Src)
+
+		textures[tileType] = rgba
 	}
 
 	return textures, nil

@@ -12,7 +12,7 @@ import (
 )
 
 const PlayerSize = 2
-const HeightMultiplier = 1.25
+const HeightMultiplier = 2
 
 func DrawMiniMap(screen *ebiten.Image, p *entity.Player, m *world.Map, rays []RayResult, scale, minimapOffsetX, minimapOffsetY float32) {
 	var c color.Color
@@ -88,49 +88,61 @@ func DrawMiniMap(screen *ebiten.Image, p *entity.Player, m *world.Map, rays []Ra
 	)
 }
 
-func Draw3dWorld(screen *ebiten.Image, rays []RayResult, textures map[byte]*ebiten.Image) {
-	screenHeight := screen.Bounds().Dy()
-
+func Draw3dWorld(pixelBuffer []byte, screenWidth, screenHeight int, rays []RayResult, textures map[byte]*image.RGBA) {
 	for _, ray := range rays {
-		drawStart := (float64(screenHeight) - ray.WallHeight) / 2
+		drawStart := int((float64(screenHeight) - ray.WallHeight) / 2)
+		drawEnd := int((float64(screenHeight) + ray.WallHeight) / 2)
+
+		if drawStart < 0 {
+			drawStart = 0
+		}
+		if drawEnd >= screenHeight {
+			drawEnd = screenHeight - 1
+		}
 
 		tex := textures[ray.TileType]
-		texHeight := tex.Bounds().Dy()
+		texHeight := tex.Rect.Dy()
 
-		cut := image.Rect(ray.TextureX, 0, ray.TextureX+1, texHeight)
-		column := tex.SubImage(cut).(*ebiten.Image)
-		scaleY := float64(ray.WallHeight) / float64(texHeight)
+		step := float64(texHeight) / ray.WallHeight
+		texPos := (float64(drawStart) - float64(screenHeight)/2 + ray.WallHeight/2) * step
 
-		op := &ebiten.DrawImageOptions{}
-		op.GeoM.Scale(1, scaleY)
-		op.GeoM.Translate(float64(ray.X), float64(drawStart))
+		var fullLightDist float64 = 2.0
+		var maxDarkDist float64 = 12.0
+		var dist float64 = ray.PerpWallDist
 
-		var fullLightDist float32 = 2.0 // min
-		var maxDarkDist float32 = 12.0  // max
-		var dist float32 = float32(ray.PerpWallDist)
-
-		// lerp    -> (x - min) / (max - min) -> 0..1
-		// inverse -> (max - x) / (max - min) -> 1..0
 		mult := (maxDarkDist - dist) / (maxDarkDist - fullLightDist)
-
 		if dist <= fullLightDist {
 			mult = 1
 		}
 		if dist >= maxDarkDist {
 			mult = 0
 		}
-
-		op.ColorScale.Scale(mult, mult, mult, 1)
-
 		if ray.Side == 0 {
-			op.ColorScale.Scale(0.7, 0.7, 0.7, 1)
+			mult *= 0.7
 		}
 
-		screen.DrawImage(column, op)
+		multFixed := uint32(mult * 256)
+		tx := ray.TextureX
+
+		for y := drawStart; y <= drawEnd; y++ {
+			ty := int(texPos) & (texHeight - 1)
+			texPos += step
+
+			texIndex := ty*tex.Stride + tx*4
+			r := tex.Pix[texIndex]
+			g := tex.Pix[texIndex+1]
+			b := tex.Pix[texIndex+2]
+
+			idx := (y*screenWidth + ray.X) * 4
+			pixelBuffer[idx] = uint8((uint32(r) * multFixed) / 256)
+			pixelBuffer[idx+1] = uint8((uint32(g) * multFixed) / 256)
+			pixelBuffer[idx+2] = uint8((uint32(b) * multFixed) / 256)
+			pixelBuffer[idx+3] = 255
+		}
 	}
 }
 
-func DrawFloor(screen *ebiten.Image, screenWidth, screenHeight int, p *entity.Player, textures map[byte]*ebiten.Image) {
+func DrawFloor(pixelBuffer []byte, screenWidth, screenHeight int, p *entity.Player, textures map[byte]*image.RGBA) {
 	for y := screenHeight/2 + 1; y < screenHeight; y++ {
 		rayDirX0 := p.DirX - p.PlaneX
 		rayDirY0 := p.DirY - p.PlaneY
@@ -160,43 +172,45 @@ func DrawFloor(screen *ebiten.Image, screenWidth, screenHeight int, p *entity.Pl
 			mult = 0
 		}
 
-		for x := range screenWidth {
-			cellX := int(floorX)
-			cellY := int(floorY)
+		multFixed := uint32(mult * 256)
 
-			tx := int(float64(world.TileSize)*(floorX-float64(cellX))) & (world.TileSize - 1)
-			ty := int(float64(world.TileSize)*(floorY-float64(cellY))) & (world.TileSize - 1)
+		floorTex := textures[3]
+		ceilingTex := textures[1]
+		floorStride := floorTex.Stride
+		ceilingStride := ceilingTex.Stride
+
+		tileSizeFloat := float64(world.TileSize)
+		tileSizeMask := world.TileSize - 1
+
+		for x := range screenWidth {
+			tx := int(floorX*tileSizeFloat) & tileSizeMask
+			ty := int(floorY*tileSizeFloat) & tileSizeMask
 
 			floorX += floorStepX
 			floorY += floorStepY
 
-			floorTexture := 3
-			ceilingTexture := 1
+			texIndexF := ty*floorStride + tx*4
+			rF := floorTex.Pix[texIndexF]
+			gF := floorTex.Pix[texIndexF+1]
+			bF := floorTex.Pix[texIndexF+2]
 
-			floorTex := textures[byte(floorTexture)]
-			ceilingTex := textures[byte(ceilingTexture)]
+			texIndexC := ty*ceilingStride + tx*4
+			rC := ceilingTex.Pix[texIndexC]
+			gC := ceilingTex.Pix[texIndexC+1]
+			bC := ceilingTex.Pix[texIndexC+2]
 
-			floorColor := floorTex.At(tx, ty)
-			ceilingColor := ceilingTex.At(tx, ty)
+			floorIdx := (y*screenWidth + x) * 4
+			pixelBuffer[floorIdx] = uint8((uint32(rF) * multFixed) >> 8)
+			pixelBuffer[floorIdx+1] = uint8((uint32(gF) * multFixed) >> 8)
+			pixelBuffer[floorIdx+2] = uint8((uint32(bF) * multFixed) >> 8)
+			pixelBuffer[floorIdx+3] = 255
 
-			rF, gF, bF, aF := floorColor.RGBA()
-			shadedFloor := color.RGBA{
-				R: uint8(float64(rF>>8) * mult),
-				G: uint8(float64(gF>>8) * mult),
-				B: uint8(float64(bF>>8) * mult),
-				A: uint8(aF >> 8),
-			}
-
-			rC, gC, bC, aC := ceilingColor.RGBA()
-			shadedCeiling := color.RGBA{
-				R: uint8(float64(rC>>8) * mult),
-				G: uint8(float64(gC>>8) * mult),
-				B: uint8(float64(bC>>8) * mult),
-				A: uint8(aC >> 8),
-			}
-
-			screen.Set(x, y, shadedFloor)
-			screen.Set(x, screenHeight-y-1, shadedCeiling)
+			ceilY := screenHeight - y - 1
+			ceilIdx := (ceilY*screenWidth + x) * 4
+			pixelBuffer[ceilIdx] = uint8((uint32(rC) * multFixed) >> 8)
+			pixelBuffer[ceilIdx+1] = uint8((uint32(gC) * multFixed) >> 8)
+			pixelBuffer[ceilIdx+2] = uint8((uint32(bC) * multFixed) >> 8)
+			pixelBuffer[ceilIdx+3] = 255
 		}
 	}
 }
