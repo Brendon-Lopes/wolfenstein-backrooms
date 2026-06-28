@@ -134,9 +134,9 @@ func Draw3dWorld(pixelBuffer []byte, screenWidth, screenHeight int, rays []RayRe
 			b := tex.Pix[texIndex+2]
 
 			idx := (y*screenWidth + ray.X) * 4
-			pixelBuffer[idx] = uint8((uint32(r) * multFixed) / 256)
-			pixelBuffer[idx+1] = uint8((uint32(g) * multFixed) / 256)
-			pixelBuffer[idx+2] = uint8((uint32(b) * multFixed) / 256)
+			pixelBuffer[idx] = uint8((uint32(r) * multFixed) >> 8)
+			pixelBuffer[idx+1] = uint8((uint32(g) * multFixed) >> 8)
+			pixelBuffer[idx+2] = uint8((uint32(b) * multFixed) >> 8)
 			pixelBuffer[idx+3] = 255
 		}
 	}
@@ -173,12 +173,12 @@ func DrawFloor(pixelBuffer []byte, screenWidth, screenHeight int, p *entity.Play
 		}
 
 		multFixed := uint32(mult * 256)
-
+		
 		floorTex := textures[3]
 		ceilingTex := textures[1]
 		floorStride := floorTex.Stride
 		ceilingStride := ceilingTex.Stride
-
+		
 		tileSizeFloat := float64(world.TileSize)
 		tileSizeMask := world.TileSize - 1
 
