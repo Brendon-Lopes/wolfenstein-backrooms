@@ -12,7 +12,7 @@ import (
 )
 
 const PlayerSize = 2
-const HeightMultiplier = 2
+const HeightMultiplier = 2.5
 
 func DrawMiniMap(screen *ebiten.Image, p *entity.Player, m *world.Map, rays []RayResult, scale, minimapOffsetX, minimapOffsetY float32) {
 	var c color.Color
@@ -173,12 +173,12 @@ func DrawFloor(pixelBuffer []byte, screenWidth, screenHeight int, p *entity.Play
 		}
 
 		multFixed := uint32(mult * 256)
-		
-		floorTex := textures[3]
-		ceilingTex := textures[1]
+
+		floorTex := textures[2]
+		ceilingTex := textures[3]
 		floorStride := floorTex.Stride
 		ceilingStride := ceilingTex.Stride
-		
+
 		tileSizeFloat := float64(world.TileSize)
 		tileSizeMask := world.TileSize - 1
 
