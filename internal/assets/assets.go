@@ -28,9 +28,9 @@ func LoadTextures() (map[byte]*image.RGBA, error) {
 	tileSize := 64
 	tilesPerRow := 8
 
-	tileIDs := []byte{1, 2, 3}
+	tileAmount := 3
 
-	for index, tileType := range tileIDs {
+	for index := range tileAmount {
 		col := index % tilesPerRow
 		row := index / tilesPerRow
 
@@ -41,7 +41,7 @@ func LoadTextures() (map[byte]*image.RGBA, error) {
 
 		draw.Draw(rgba, rgba.Bounds(), img, image.Point{X: startX, Y: startY}, draw.Src)
 
-		textures[tileType] = rgba
+		textures[byte(index+1)] = rgba
 	}
 
 	return textures, nil
